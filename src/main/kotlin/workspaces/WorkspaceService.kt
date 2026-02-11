@@ -2,13 +2,18 @@ package workspaces
 
 import db.tables.pojos.Workspace
 import utils.ResourceId
+import java.time.OffsetDateTime
 
-class WorkspaceService(private val workspaceRepository: WorkspaceRepository) {
+class WorkspaceService(
+  private val workspaceRepository: WorkspaceRepository,
+) {
   fun createWorkspace(name: String): Workspace {
-    val workspace = Workspace().apply {
-      this.id = WorkspaceRepository.newResourceId()
-      this.name = name
-    }
+    val workspace =
+      Workspace().apply {
+        this.id = WorkspaceRepository.newResourceId()
+        this.name = name
+        this.createdAt = OffsetDateTime.now()
+      }
     workspaceRepository.insert(workspace)
 
     return workspace

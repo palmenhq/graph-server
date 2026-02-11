@@ -8,6 +8,8 @@ import db.PublicSchema
 import db.keys.WORKSPACE_PKEY
 import db.tables.records.WorkspaceRecord
 
+import java.time.OffsetDateTime
+
 import kotlin.collections.Collection
 
 import org.jooq.Condition
@@ -77,6 +79,11 @@ open class WorkspaceTable(
      * The column <code>public_schema.workspace.name</code>.
      */
     val NAME: TableField<WorkspaceRecord, String?> = createField(DSL.name("name"), SQLDataType.CLOB, this, "")
+
+    /**
+     * The column <code>public_schema.workspace.created_at</code>.
+     */
+    val CREATED_AT: TableField<WorkspaceRecord, OffsetDateTime?> = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false), this, "")
 
     private constructor(alias: Name, aliased: Table<WorkspaceRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<WorkspaceRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)

@@ -21,6 +21,9 @@ import kotlinx.serialization.json.Json
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL
 import org.postgresql.Driver
+import workspaces.WorkspaceRepository
+import workspaces.WorkspaceService
+import workspaces.workspaceRoutes
 
 fun Application.main() {
   val dataSource =
@@ -34,6 +37,8 @@ fun Application.main() {
     )
   val dslContext = DSL.using(dataSource, SQLDialect.POSTGRES, Database.jooqSettings)
 
+  val workspaceService = WorkspaceService(WorkspaceRepository(dslContext))
+
   install(ContentNegotiation) {
     json(
       Json {
@@ -45,13 +50,13 @@ fun Application.main() {
 
   routing {
     route("/api") {
+      workspaceRoutes(workspaceService)
     }
     get(path = "/openapi.json") {
       val doc = OpenApiDoc(info = OpenApiInfo(title = "Graph Crm", "0")) + routingRoot.descendants()
       call.respondText(Json.encodeToString(doc))
     }.hide()
   }
-
 }
 
 fun main() {

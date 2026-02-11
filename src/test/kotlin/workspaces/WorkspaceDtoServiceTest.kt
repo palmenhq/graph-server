@@ -3,7 +3,7 @@ package workspaces
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-class WorkspaceServiceTest {
+class WorkspaceDtoServiceTest {
   @Test
   fun `creates and gets workspaces`() {
     val service = WorkspaceService(WorkspaceRepository(TestHelp.dslContext))

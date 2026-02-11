@@ -8,6 +8,8 @@ import db.tables.WorkspaceTable
 import db.tables.pojos.Workspace
 import db.tables.records.WorkspaceRecord
 
+import java.time.OffsetDateTime
+
 import kotlin.collections.List
 
 import org.jooq.Configuration
@@ -53,4 +55,15 @@ open class WorkspaceDao(configuration: Configuration?) : DAOImpl<WorkspaceRecord
      * Fetch records that have <code>name IN (values)</code>
      */
     fun fetchByName(vararg values: String): List<Workspace> = fetch(WorkspaceTable.WORKSPACE.NAME, *values)
+
+    /**
+     * Fetch records that have <code>created_at BETWEEN lowerInclusive AND
+     * upperInclusive</code>
+     */
+    fun fetchRangeOfCreatedAt(lowerInclusive: OffsetDateTime?, upperInclusive: OffsetDateTime?): List<Workspace> = fetchRange(WorkspaceTable.WORKSPACE.CREATED_AT, lowerInclusive, upperInclusive)
+
+    /**
+     * Fetch records that have <code>created_at IN (values)</code>
+     */
+    fun fetchByCreatedAt(vararg values: OffsetDateTime): List<Workspace> = fetch(WorkspaceTable.WORKSPACE.CREATED_AT, *values)
 }

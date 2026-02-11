@@ -7,6 +7,8 @@ package db.tables.records
 import db.tables.WorkspaceTable
 import db.tables.pojos.Workspace
 
+import java.time.OffsetDateTime
+
 import org.jooq.Record1
 import org.jooq.impl.UpdatableRecordImpl
 
@@ -25,6 +27,10 @@ open class WorkspaceRecord() : UpdatableRecordImpl<WorkspaceRecord>(WorkspaceTab
         set(value): Unit = set(1, value)
         get(): String? = get(1) as String?
 
+    open var createdAt: OffsetDateTime?
+        set(value): Unit = set(2, value)
+        get(): OffsetDateTime? = get(2) as OffsetDateTime?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -34,9 +40,10 @@ open class WorkspaceRecord() : UpdatableRecordImpl<WorkspaceRecord>(WorkspaceTab
     /**
      * Create a detached, initialised WorkspaceRecord
      */
-    constructor(id: String? = null, name: String? = null): this() {
+    constructor(id: String? = null, name: String? = null, createdAt: OffsetDateTime? = null): this() {
         this.id = id
         this.name = name
+        this.createdAt = createdAt
         resetTouchedOnNotNull()
     }
 
@@ -47,6 +54,7 @@ open class WorkspaceRecord() : UpdatableRecordImpl<WorkspaceRecord>(WorkspaceTab
         if (value != null) {
             this.id = value.id
             this.name = value.name
+            this.createdAt = value.createdAt
             resetTouchedOnNotNull()
         }
     }
