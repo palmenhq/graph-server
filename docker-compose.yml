@@ -1,0 +1,18 @@
+services:
+  postgres:
+    image: 'postgres:17.6-alpine'
+    ports:
+      - '54321:5432'
+    environment:
+      POSTGRES_USER: graphcrm
+      POSTGRES_PASSWORD: graphcrm
+      POSTGRES_DB: graphcrm
+
+  postgres-test:
+    image: 'postgres:17.6-alpine'
+    ports:
+      - '54322:5432'
+    environment:
+      POSTGRES_USER: graphcrm_test
+      POSTGRES_PASSWORD: graphcrm_test
+      POSTGRES_DB: graphcrm_test

@@ -1,0 +1,17 @@
+root = true
+
+[*]
+insert_final_newline = true
+end_of_line = lf
+
+[*.{kt,kts}]
+ij_kotlin_allow_trailing_comma_on_call_site = true
+ij_kotlin_allow_trailing_comma = true
+ij_kotlin_name_count_to_use_star_import = 999
+ktlint_standard_filename = disabled
+indent_style = space
+indent_size = 2
+
+[Makefile]
+indent_style = tab
+indent_size = 4
