@@ -1,10 +1,10 @@
-package workspaces
+package app.workspaces
 
+import app.utils.ResourceId
+import app.utils.toResourceId
 import db.tables.daos.WorkspaceDao
 import db.tables.pojos.Workspace
 import org.jooq.DSLContext
-import utils.ResourceId
-import utils.toResourceId
 import java.util.UUID
 
 class WorkspaceRepository(
@@ -17,9 +17,12 @@ class WorkspaceRepository(
 
   fun findById(id: ResourceId): Workspace? = dao.findById(id)
 
+  fun findAll(): List<Workspace> = dao.findAll()
+
   companion object {
     fun newResourceId(): ResourceId =
-      UUID.randomUUID()
+      UUID
+        .randomUUID()
         .toResourceId("wskp")
   }
 }

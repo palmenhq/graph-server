@@ -5,7 +5,15 @@ package db.tables
 
 
 import db.PublicSchema
+import db.keys.EDGE_TYPE__EDGE_TYPE_WORKSPACE_ID_FKEY
+import db.keys.EDGE__EDGE_WORKSPACE_ID_FKEY
+import db.keys.NODE_TYPE__NODE_TYPE_WORKSPACE_ID_FKEY
+import db.keys.NODE__NODE_WORKSPACE_ID_FKEY
 import db.keys.WORKSPACE_PKEY
+import db.tables.EdgeTable.EdgePath
+import db.tables.EdgeTypeTable.EdgeTypePath
+import db.tables.NodeTable.NodePath
+import db.tables.NodeTypeTable.NodeTypePath
 import db.tables.records.WorkspaceRecord
 
 import java.time.OffsetDateTime
@@ -17,6 +25,7 @@ import org.jooq.Field
 import org.jooq.ForeignKey
 import org.jooq.InverseForeignKey
 import org.jooq.Name
+import org.jooq.Path
 import org.jooq.PlainSQL
 import org.jooq.QueryPart
 import org.jooq.Record
@@ -29,6 +38,7 @@ import org.jooq.TableField
 import org.jooq.TableOptions
 import org.jooq.UniqueKey
 import org.jooq.impl.DSL
+import org.jooq.impl.Internal
 import org.jooq.impl.SQLDataType
 import org.jooq.impl.TableImpl
 
@@ -103,8 +113,85 @@ open class WorkspaceTable(
      * Create a <code>public_schema.workspace</code> table reference
      */
     constructor(): this(DSL.name("workspace"), null)
+
+    constructor(path: Table<out Record>, childPath: ForeignKey<out Record, WorkspaceRecord>?, parentPath: InverseForeignKey<out Record, WorkspaceRecord>?): this(Internal.createPathAlias(path, childPath, parentPath), path, childPath, parentPath, WORKSPACE, null, null)
+
+    /**
+     * A subtype implementing {@link Path} for simplified path-based joins.
+     */
+    open class WorkspacePath : WorkspaceTable, Path<WorkspaceRecord> {
+        constructor(path: Table<out Record>, childPath: ForeignKey<out Record, WorkspaceRecord>?, parentPath: InverseForeignKey<out Record, WorkspaceRecord>?): super(path, childPath, parentPath)
+        private constructor(alias: Name, aliased: Table<WorkspaceRecord>): super(alias, aliased)
+        override fun `as`(alias: String): WorkspacePath = WorkspacePath(DSL.name(alias), this)
+        override fun `as`(alias: Name): WorkspacePath = WorkspacePath(alias, this)
+        override fun `as`(alias: Table<*>): WorkspacePath = WorkspacePath(alias.qualifiedName, this)
+    }
     override fun getSchema(): Schema? = if (aliased()) null else PublicSchema.PUBLIC_SCHEMA
     override fun getPrimaryKey(): UniqueKey<WorkspaceRecord> = WORKSPACE_PKEY
+
+    private lateinit var _edgeType: EdgeTypePath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public_schema.edge_type</code> table
+     */
+    fun edgeType(): EdgeTypePath {
+        if (!this::_edgeType.isInitialized)
+            _edgeType = EdgeTypePath(this, null, EDGE_TYPE__EDGE_TYPE_WORKSPACE_ID_FKEY.inverseKey)
+
+        return _edgeType;
+    }
+
+    val edgeType: EdgeTypePath
+        get(): EdgeTypePath = edgeType()
+
+    private lateinit var _edge: EdgePath
+
+    /**
+     * Get the implicit to-many join path to the <code>public_schema.edge</code>
+     * table
+     */
+    fun edge(): EdgePath {
+        if (!this::_edge.isInitialized)
+            _edge = EdgePath(this, null, EDGE__EDGE_WORKSPACE_ID_FKEY.inverseKey)
+
+        return _edge;
+    }
+
+    val edge: EdgePath
+        get(): EdgePath = edge()
+
+    private lateinit var _nodeType: NodeTypePath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public_schema.node_type</code> table
+     */
+    fun nodeType(): NodeTypePath {
+        if (!this::_nodeType.isInitialized)
+            _nodeType = NodeTypePath(this, null, NODE_TYPE__NODE_TYPE_WORKSPACE_ID_FKEY.inverseKey)
+
+        return _nodeType;
+    }
+
+    val nodeType: NodeTypePath
+        get(): NodeTypePath = nodeType()
+
+    private lateinit var _node: NodePath
+
+    /**
+     * Get the implicit to-many join path to the <code>public_schema.node</code>
+     * table
+     */
+    fun node(): NodePath {
+        if (!this::_node.isInitialized)
+            _node = NodePath(this, null, NODE__NODE_WORKSPACE_ID_FKEY.inverseKey)
+
+        return _node;
+    }
+
+    val node: NodePath
+        get(): NodePath = node()
     override fun `as`(alias: String): WorkspaceTable = WorkspaceTable(DSL.name(alias), this)
     override fun `as`(alias: Name): WorkspaceTable = WorkspaceTable(alias, this)
     override fun `as`(alias: Table<*>): WorkspaceTable = WorkspaceTable(alias.qualifiedName, this)

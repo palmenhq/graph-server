@@ -1,4 +1,4 @@
-package config
+package app.config
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.serializer

@@ -1,7 +1,7 @@
-package workspaces
+package app.workspaces
 
+import app.utils.ResourceId
 import db.tables.pojos.Workspace
-import utils.ResourceId
 import java.time.OffsetDateTime
 
 class WorkspaceService(
@@ -20,4 +20,6 @@ class WorkspaceService(
   }
 
   fun getById(id: ResourceId): Workspace? = workspaceRepository.findById(id)
+
+  fun getAll(): List<Workspace> = workspaceRepository.findAll()
 }

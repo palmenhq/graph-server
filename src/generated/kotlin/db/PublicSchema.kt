@@ -4,6 +4,10 @@
 package db
 
 
+import db.tables.EdgeTable
+import db.tables.EdgeTypeTable
+import db.tables.NodeTable
+import db.tables.NodeTypeTable
 import db.tables.WorkspaceTable
 
 import kotlin.collections.List
@@ -28,6 +32,26 @@ open class PublicSchema : SchemaImpl(DSL.name("public_schema"), DefaultCatalog.D
     }
 
     /**
+     * The table <code>public_schema.edge</code>.
+     */
+    val EDGE: EdgeTable get() = EdgeTable.EDGE
+
+    /**
+     * The table <code>public_schema.edge_type</code>.
+     */
+    val EDGE_TYPE: EdgeTypeTable get() = EdgeTypeTable.EDGE_TYPE
+
+    /**
+     * The table <code>public_schema.node</code>.
+     */
+    val NODE: NodeTable get() = NodeTable.NODE
+
+    /**
+     * The table <code>public_schema.node_type</code>.
+     */
+    val NODE_TYPE: NodeTypeTable get() = NodeTypeTable.NODE_TYPE
+
+    /**
      * The table <code>public_schema.workspace</code>.
      */
     val WORKSPACE: WorkspaceTable get() = WorkspaceTable.WORKSPACE
@@ -35,6 +59,10 @@ open class PublicSchema : SchemaImpl(DSL.name("public_schema"), DefaultCatalog.D
     override fun getCatalog(): Catalog = DefaultCatalog.DEFAULT_CATALOG
 
     override fun getTables(): List<Table<*>> = listOf(
+        EdgeTable.EDGE,
+        EdgeTypeTable.EDGE_TYPE,
+        NodeTable.NODE,
+        NodeTypeTable.NODE_TYPE,
         WorkspaceTable.WORKSPACE
     )
 }

@@ -1,4 +1,4 @@
-package config
+package app.config
 
 import org.jooq.conf.MappedSchema
 import org.jooq.conf.RenderMapping

@@ -1,7 +1,16 @@
+package app
+
+import app.config.Database
+import app.config.Environment
+import app.graph.GraphRepository
+import app.graph.GraphService
+import app.graph.graphRoutes
+import app.workspaces.WorkspaceRepository
+import app.workspaces.WorkspaceService
+import app.workspaces.workspaceRoutes
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import config.Database
-import config.Environment
+import io.ktor.http.ContentType
 import io.ktor.openapi.OpenApiDoc
 import io.ktor.openapi.OpenApiInfo
 import io.ktor.serialization.kotlinx.json.json
@@ -21,9 +30,6 @@ import kotlinx.serialization.json.Json
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL
 import org.postgresql.Driver
-import workspaces.WorkspaceRepository
-import workspaces.WorkspaceService
-import workspaces.workspaceRoutes
 
 fun Application.main() {
   val dataSource =
@@ -39,6 +45,8 @@ fun Application.main() {
 
   val workspaceService = WorkspaceService(WorkspaceRepository(dslContext))
 
+  val graphService = GraphService(GraphRepository(dslContext), workspaceService)
+
   install(ContentNegotiation) {
     json(
       Json {
@@ -51,10 +59,11 @@ fun Application.main() {
   routing {
     route("/api") {
       workspaceRoutes(workspaceService)
+      graphRoutes(graphService)
     }
     get(path = "/openapi.json") {
       val doc = OpenApiDoc(info = OpenApiInfo(title = "Graph Crm", "0")) + routingRoot.descendants()
-      call.respondText(Json.encodeToString(doc))
+      call.respondText(Json.encodeToString(doc), contentType = ContentType.Application.Json)
     }.hide()
   }
 }

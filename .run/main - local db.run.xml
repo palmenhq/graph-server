@@ -7,7 +7,7 @@
       <env name="DB_URL" value="jdbc:postgresql://127.0.0.1:54321/graphcrm" />
       <env name="DB_USER" value="graphcrm" />
     </envs>
-    <option name="MAIN_CLASS_NAME" value="MainKt" />
+    <option name="MAIN_CLASS_NAME" value="app.MainKt" />
     <module name="graph-crm.main" />
     <shortenClasspath name="NONE" />
     <method v="2">

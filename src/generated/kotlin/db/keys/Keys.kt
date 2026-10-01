@@ -5,12 +5,22 @@
 package db.keys
 
 
+import db.tables.EdgeTable
+import db.tables.EdgeTypeTable
+import db.tables.NodeTable
+import db.tables.NodeTypeTable
 import db.tables.WorkspaceTable
+import db.tables.records.EdgeRecord
+import db.tables.records.EdgeTypeRecord
+import db.tables.records.NodeRecord
+import db.tables.records.NodeTypeRecord
 import db.tables.records.WorkspaceRecord
 
+import org.jooq.ForeignKey
 import org.jooq.UniqueKey
 import org.jooq.impl.DSL
 import org.jooq.impl.Internal
+import org.jooq.impl.QOM.ForeignKeyRule
 
 
 
@@ -18,4 +28,22 @@ import org.jooq.impl.Internal
 // UNIQUE and PRIMARY KEY definitions
 // -------------------------------------------------------------------------
 
+val EDGE_PKEY: UniqueKey<EdgeRecord> = Internal.createUniqueKey(EdgeTable.EDGE, DSL.name("edge_pkey"), arrayOf(EdgeTable.EDGE.ID), true)
+val EDGE_TYPE_PKEY: UniqueKey<EdgeTypeRecord> = Internal.createUniqueKey(EdgeTypeTable.EDGE_TYPE, DSL.name("edge_type_pkey"), arrayOf(EdgeTypeTable.EDGE_TYPE.ID), true)
+val NODE_PKEY: UniqueKey<NodeRecord> = Internal.createUniqueKey(NodeTable.NODE, DSL.name("node_pkey"), arrayOf(NodeTable.NODE.ID), true)
+val NODE_TYPE_PKEY: UniqueKey<NodeTypeRecord> = Internal.createUniqueKey(NodeTypeTable.NODE_TYPE, DSL.name("node_type_pkey"), arrayOf(NodeTypeTable.NODE_TYPE.ID), true)
 val WORKSPACE_PKEY: UniqueKey<WorkspaceRecord> = Internal.createUniqueKey(WorkspaceTable.WORKSPACE, DSL.name("workspace_pkey"), arrayOf(WorkspaceTable.WORKSPACE.ID), true)
+
+// -------------------------------------------------------------------------
+// FOREIGN KEY definitions
+// -------------------------------------------------------------------------
+
+val EDGE__EDGE_FROM_NODE_FKEY: ForeignKey<EdgeRecord, NodeRecord> = Internal.createForeignKey(EdgeTable.EDGE, DSL.name("edge_from_node_fkey"), arrayOf(EdgeTable.EDGE.FROM_NODE), db.keys.NODE_PKEY, arrayOf(NodeTable.NODE.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val EDGE__EDGE_TO_NODE_FKEY: ForeignKey<EdgeRecord, NodeRecord> = Internal.createForeignKey(EdgeTable.EDGE, DSL.name("edge_to_node_fkey"), arrayOf(EdgeTable.EDGE.TO_NODE), db.keys.NODE_PKEY, arrayOf(NodeTable.NODE.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val EDGE__EDGE_WORKSPACE_ID_FKEY: ForeignKey<EdgeRecord, WorkspaceRecord> = Internal.createForeignKey(EdgeTable.EDGE, DSL.name("edge_workspace_id_fkey"), arrayOf(EdgeTable.EDGE.WORKSPACE_ID), db.keys.WORKSPACE_PKEY, arrayOf(WorkspaceTable.WORKSPACE.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val EDGE_TYPE__EDGE_TYPE_SOURCE_NODE_TYPE_FKEY: ForeignKey<EdgeTypeRecord, NodeTypeRecord> = Internal.createForeignKey(EdgeTypeTable.EDGE_TYPE, DSL.name("edge_type_source_node_type_fkey"), arrayOf(EdgeTypeTable.EDGE_TYPE.SOURCE_NODE_TYPE), db.keys.NODE_TYPE_PKEY, arrayOf(NodeTypeTable.NODE_TYPE.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val EDGE_TYPE__EDGE_TYPE_TARGET_NODE_TYPE_FKEY: ForeignKey<EdgeTypeRecord, NodeTypeRecord> = Internal.createForeignKey(EdgeTypeTable.EDGE_TYPE, DSL.name("edge_type_target_node_type_fkey"), arrayOf(EdgeTypeTable.EDGE_TYPE.TARGET_NODE_TYPE), db.keys.NODE_TYPE_PKEY, arrayOf(NodeTypeTable.NODE_TYPE.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val EDGE_TYPE__EDGE_TYPE_WORKSPACE_ID_FKEY: ForeignKey<EdgeTypeRecord, WorkspaceRecord> = Internal.createForeignKey(EdgeTypeTable.EDGE_TYPE, DSL.name("edge_type_workspace_id_fkey"), arrayOf(EdgeTypeTable.EDGE_TYPE.WORKSPACE_ID), db.keys.WORKSPACE_PKEY, arrayOf(WorkspaceTable.WORKSPACE.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val NODE__NODE_TYPE_FKEY: ForeignKey<NodeRecord, NodeTypeRecord> = Internal.createForeignKey(NodeTable.NODE, DSL.name("node_type_fkey"), arrayOf(NodeTable.NODE.TYPE), db.keys.NODE_TYPE_PKEY, arrayOf(NodeTypeTable.NODE_TYPE.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val NODE__NODE_WORKSPACE_ID_FKEY: ForeignKey<NodeRecord, WorkspaceRecord> = Internal.createForeignKey(NodeTable.NODE, DSL.name("node_workspace_id_fkey"), arrayOf(NodeTable.NODE.WORKSPACE_ID), db.keys.WORKSPACE_PKEY, arrayOf(WorkspaceTable.WORKSPACE.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val NODE_TYPE__NODE_TYPE_WORKSPACE_ID_FKEY: ForeignKey<NodeTypeRecord, WorkspaceRecord> = Internal.createForeignKey(NodeTypeTable.NODE_TYPE, DSL.name("node_type_workspace_id_fkey"), arrayOf(NodeTypeTable.NODE_TYPE.WORKSPACE_ID), db.keys.WORKSPACE_PKEY, arrayOf(WorkspaceTable.WORKSPACE.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)

@@ -5,9 +5,33 @@
 package db.tables.references
 
 
+import db.tables.EdgeTable
+import db.tables.EdgeTypeTable
+import db.tables.NodeTable
+import db.tables.NodeTypeTable
 import db.tables.WorkspaceTable
 
 
+
+/**
+ * The table <code>public_schema.edge</code>.
+ */
+val EDGE: EdgeTable = EdgeTable.EDGE
+
+/**
+ * The table <code>public_schema.edge_type</code>.
+ */
+val EDGE_TYPE: EdgeTypeTable = EdgeTypeTable.EDGE_TYPE
+
+/**
+ * The table <code>public_schema.node</code>.
+ */
+val NODE: NodeTable = NodeTable.NODE
+
+/**
+ * The table <code>public_schema.node_type</code>.
+ */
+val NODE_TYPE: NodeTypeTable = NodeTypeTable.NODE_TYPE
 
 /**
  * The table <code>public_schema.workspace</code>.

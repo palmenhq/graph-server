@@ -1,4 +1,4 @@
-package workspaces.dtos
+package app.workspaces.dtos
 
 import db.tables.pojos.Workspace
 import io.ktor.openapi.JsonSchema

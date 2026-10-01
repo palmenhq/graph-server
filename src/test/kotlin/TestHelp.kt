@@ -1,8 +1,8 @@
-import config.Database
+import app.config.Database
+import app.workspaces.WorkspaceRepository
+import app.workspaces.WorkspaceService
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
-import workspaces.WorkspaceRepository
-import workspaces.WorkspaceService
 import java.sql.Connection
 import java.sql.DriverManager
 

@@ -1,8 +1,8 @@
-package workspaces.dtos
+package app.graph.dtos
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class CreateWorkspaceRequest(
+data class CreateNodeTypeRequest(
   val name: String,
 )

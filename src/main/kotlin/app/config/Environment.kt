@@ -1,4 +1,4 @@
-package config
+package app.config
 
 object Environment {
   val databaseUrl: String
