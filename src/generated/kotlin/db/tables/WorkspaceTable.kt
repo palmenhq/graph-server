@@ -7,12 +7,16 @@ package db.tables
 import db.PublicSchema
 import db.keys.EDGE_TYPE__EDGE_TYPE_WORKSPACE_ID_FKEY
 import db.keys.EDGE__EDGE_WORKSPACE_ID_FKEY
+import db.keys.NODE_PROPERTY_VALUE__NODE_PROPERTY_VALUE_WORKSPACE_ID_FKEY
+import db.keys.NODE_PROPERTY__NODE_PROPERTY_WORKSPACE_ID_FKEY
 import db.keys.NODE_TYPE__NODE_TYPE_WORKSPACE_ID_FKEY
 import db.keys.NODE__NODE_WORKSPACE_ID_FKEY
 import db.keys.NOTE__NOTE_WORKSPACE_ID_FKEY
 import db.keys.WORKSPACE_PKEY
 import db.tables.EdgeTable.EdgePath
 import db.tables.EdgeTypeTable.EdgeTypePath
+import db.tables.NodePropertyTable.NodePropertyPath
+import db.tables.NodePropertyValueTable.NodePropertyValuePath
 import db.tables.NodeTable.NodePath
 import db.tables.NodeTypeTable.NodeTypePath
 import db.tables.NoteTable.NotePath
@@ -162,6 +166,38 @@ open class WorkspaceTable(
 
     val edge: EdgePath
         get(): EdgePath = edge()
+
+    private lateinit var _nodePropertyValue: NodePropertyValuePath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public_schema.node_property_value</code> table
+     */
+    fun nodePropertyValue(): NodePropertyValuePath {
+        if (!this::_nodePropertyValue.isInitialized)
+            _nodePropertyValue = NodePropertyValuePath(this, null, NODE_PROPERTY_VALUE__NODE_PROPERTY_VALUE_WORKSPACE_ID_FKEY.inverseKey)
+
+        return _nodePropertyValue;
+    }
+
+    val nodePropertyValue: NodePropertyValuePath
+        get(): NodePropertyValuePath = nodePropertyValue()
+
+    private lateinit var _nodeProperty: NodePropertyPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public_schema.node_property</code> table
+     */
+    fun nodeProperty(): NodePropertyPath {
+        if (!this::_nodeProperty.isInitialized)
+            _nodeProperty = NodePropertyPath(this, null, NODE_PROPERTY__NODE_PROPERTY_WORKSPACE_ID_FKEY.inverseKey)
+
+        return _nodeProperty;
+    }
+
+    val nodeProperty: NodePropertyPath
+        get(): NodePropertyPath = nodeProperty()
 
     private lateinit var _nodeType: NodeTypePath
 

@@ -7,6 +7,8 @@ package db.indexes
 
 import db.tables.EdgeTable
 import db.tables.EdgeTypeTable
+import db.tables.NodePropertyTable
+import db.tables.NodePropertyValueTable
 import db.tables.NodeTable
 import db.tables.NodeTypeTable
 import db.tables.NoteMentionTable
@@ -29,6 +31,10 @@ val EDGE_TYPE_WORKSPACE_ID_IXD: Index = Internal.createIndex(DSL.name("edge_type
 val EDGE_UNIQUE_EDGES_IDX: Index = Internal.createIndex(DSL.name("edge_unique_edges_idx"), EdgeTable.EDGE, arrayOf(EdgeTable.EDGE.TYPE, EdgeTable.EDGE.FROM_NODE, EdgeTable.EDGE.TO_NODE), true)
 val EDGE_WORKSPACE_ID: Index = Internal.createIndex(DSL.name("edge_workspace_id"), EdgeTable.EDGE, arrayOf(EdgeTable.EDGE.WORKSPACE_ID), false)
 val NODE_CREATE_AT_IDX: Index = Internal.createIndex(DSL.name("node_create_at_idx"), NodeTable.NODE, arrayOf(NodeTable.NODE.CREATED_AT), false)
+val NODE_PROPERTY_NODE_TYPE_ID_IDX: Index = Internal.createIndex(DSL.name("node_property_node_type_id_idx"), NodePropertyTable.NODE_PROPERTY, arrayOf(NodePropertyTable.NODE_PROPERTY.NODE_TYPE_ID), false)
+val NODE_PROPERTY_UNIQUE_NAME_IDX: Index = Internal.createIndex(DSL.name("node_property_unique_name_idx"), NodePropertyTable.NODE_PROPERTY, arrayOf(NodePropertyTable.NODE_PROPERTY.NODE_TYPE_ID, NodePropertyTable.NODE_PROPERTY.NAME), true)
+val NODE_PROPERTY_VALUE_PROPERTY_ID_IDX: Index = Internal.createIndex(DSL.name("node_property_value_property_id_idx"), NodePropertyValueTable.NODE_PROPERTY_VALUE, arrayOf(NodePropertyValueTable.NODE_PROPERTY_VALUE.PROPERTY_ID), false)
+val NODE_PROPERTY_WORKSPACE_ID_IDX: Index = Internal.createIndex(DSL.name("node_property_workspace_id_idx"), NodePropertyTable.NODE_PROPERTY, arrayOf(NodePropertyTable.NODE_PROPERTY.WORKSPACE_ID), false)
 val NODE_TITLE_SEARCH_TRGM: Index = Internal.createIndex(DSL.name("node_title_search_trgm"), NodeTable.NODE, arrayOf(NodeTable.NODE.TITLE), false)
 val NODE_TYPE_IDX: Index = Internal.createIndex(DSL.name("node_type_idx"), NodeTable.NODE, arrayOf(NodeTable.NODE.TYPE, NodeTable.NODE.ID), false)
 val NODE_TYPE_WORKSPACE_ID_IDX: Index = Internal.createIndex(DSL.name("node_type_workspace_id_idx"), NodeTypeTable.NODE_TYPE, arrayOf(NodeTypeTable.NODE_TYPE.WORKSPACE_ID), false)

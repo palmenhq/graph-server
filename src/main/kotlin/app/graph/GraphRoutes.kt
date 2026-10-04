@@ -4,7 +4,9 @@ import app.graph.dtos.CreateEdgeRequest
 import app.graph.dtos.CreateEdgeTypeRequest
 import app.graph.dtos.CreateNodeRequest
 import app.graph.dtos.CreateNodeTypeRequest
+import app.graph.dtos.CreatePropertyRequest
 import app.graph.dtos.DeleteRequest
+import app.graph.dtos.SetPropertyValueRequest
 import app.graph.dtos.UpdateEdgeRequest
 import app.graph.dtos.UpdateEdgeTypeRequest
 import app.graph.dtos.UpdateNodeRequest
@@ -13,6 +15,7 @@ import app.graph.dtos.toDto
 import app.graph.dtos.toEdgeDto
 import app.graph.dtos.toFullDto
 import app.graph.dtos.toNeighborDto
+import app.graph.dtos.toRecord
 import app.utils.http.ClientError
 import app.utils.http.ClientException
 import app.utils.http.Cursor
@@ -43,7 +46,10 @@ private fun Route.deleteRoute(delete: (id: String, workspaceId: String) -> Unit)
   }
 }
 
-fun Route.graphRoutes(graphService: GraphService) {
+fun Route.graphRoutes(
+  graphService: GraphService,
+  propertyService: PropertyService,
+) {
   route("workspaces/{workspaceId}/graph") {
     route("nodeTypes") {
       post("create") {
@@ -95,6 +101,23 @@ fun Route.graphRoutes(graphService: GraphService) {
       }
 
       deleteRoute { id, workspaceId -> graphService.deleteNodeType(nodeTypeId = id, workspaceId = workspaceId) }
+
+      post("createProperty") {
+        val req = call.receive<CreatePropertyRequest>()
+        val result =
+          try {
+            propertyService.createProperty(
+              nodeTypeId = req.nodeTypeId,
+              name = req.name,
+              valueType = req.valueType.toRecord(),
+              workspaceId = call.workspaceId,
+            )
+          } catch (e: ClientException) {
+            return@post call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
+          }
+
+        call.respond(result.toDto())
+      }
     }
 
     route("edgeTypes") {
@@ -169,7 +192,13 @@ fun Route.graphRoutes(graphService: GraphService) {
             return@post call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
           }
 
-        call.respond(result.toFullDto(emptyList(), emptyList()))
+        call.respond(
+          result.toFullDto(
+            edges = emptyList(),
+            neighbors = emptyList(),
+            properties = propertyService.getPropertyValuesByNode(result, call.workspaceId),
+          ),
+        )
       }
 
       get("getAll") {
@@ -212,7 +241,7 @@ fun Route.graphRoutes(graphService: GraphService) {
             .map { if (it.fromNode.id == id) it.toNode else it.fromNode }
             .distinctBy { it.id }
 
-        call.respond(node.toFullDto(edgeNodes, neighbors))
+        call.respond(node.toFullDto(edgeNodes, neighbors, propertyService.getPropertyValuesByNode(node, call.workspaceId)))
       }
 
       get("getEdges") {
@@ -245,10 +274,27 @@ fun Route.graphRoutes(graphService: GraphService) {
             .map { if (it.fromNode.id == req.id) it.toNode else it.fromNode }
             .distinctBy { it.id }
 
-        call.respond(result.toFullDto(edgeNodes, neighbors))
+        call.respond(result.toFullDto(edgeNodes, neighbors, propertyService.getPropertyValuesByNode(result, call.workspaceId)))
       }
 
       deleteRoute { id, workspaceId -> graphService.deleteNode(nodeId = id, workspaceId = workspaceId) }
+
+      post("setProperty") {
+        val req = call.receive<SetPropertyValueRequest>()
+        val result =
+          try {
+            propertyService.setPropertyValue(
+              nodeId = req.nodeId,
+              propertyId = req.propertyId,
+              value = req.value,
+              workspaceId = call.workspaceId,
+            )
+          } catch (e: ClientException) {
+            return@post call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
+          }
+
+        call.respond(result.second.toDto(name = result.first.name!!))
+      }
     }
 
     route("edges") {

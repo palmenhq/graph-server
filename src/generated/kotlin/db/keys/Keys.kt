@@ -7,6 +7,8 @@ package db.keys
 
 import db.tables.EdgeTable
 import db.tables.EdgeTypeTable
+import db.tables.NodePropertyTable
+import db.tables.NodePropertyValueTable
 import db.tables.NodeTable
 import db.tables.NodeTypeTable
 import db.tables.NoteMentionTable
@@ -14,6 +16,8 @@ import db.tables.NoteTable
 import db.tables.WorkspaceTable
 import db.tables.records.EdgeRecord
 import db.tables.records.EdgeTypeRecord
+import db.tables.records.NodePropertyRecord
+import db.tables.records.NodePropertyValueRecord
 import db.tables.records.NodeRecord
 import db.tables.records.NodeTypeRecord
 import db.tables.records.NoteMentionRecord
@@ -35,6 +39,8 @@ import org.jooq.impl.QOM.ForeignKeyRule
 val EDGE_PKEY: UniqueKey<EdgeRecord> = Internal.createUniqueKey(EdgeTable.EDGE, DSL.name("edge_pkey"), arrayOf(EdgeTable.EDGE.ID), true)
 val EDGE_TYPE_PKEY: UniqueKey<EdgeTypeRecord> = Internal.createUniqueKey(EdgeTypeTable.EDGE_TYPE, DSL.name("edge_type_pkey"), arrayOf(EdgeTypeTable.EDGE_TYPE.ID), true)
 val NODE_PKEY: UniqueKey<NodeRecord> = Internal.createUniqueKey(NodeTable.NODE, DSL.name("node_pkey"), arrayOf(NodeTable.NODE.ID), true)
+val NODE_PROPERTY_PKEY: UniqueKey<NodePropertyRecord> = Internal.createUniqueKey(NodePropertyTable.NODE_PROPERTY, DSL.name("node_property_pkey"), arrayOf(NodePropertyTable.NODE_PROPERTY.ID), true)
+val NODE_PROPERTY_VALUE_PKEY: UniqueKey<NodePropertyValueRecord> = Internal.createUniqueKey(NodePropertyValueTable.NODE_PROPERTY_VALUE, DSL.name("node_property_value_pkey"), arrayOf(NodePropertyValueTable.NODE_PROPERTY_VALUE.NODE_ID, NodePropertyValueTable.NODE_PROPERTY_VALUE.PROPERTY_ID), true)
 val NODE_TYPE_PKEY: UniqueKey<NodeTypeRecord> = Internal.createUniqueKey(NodeTypeTable.NODE_TYPE, DSL.name("node_type_pkey"), arrayOf(NodeTypeTable.NODE_TYPE.ID), true)
 val NOTE_PKEY: UniqueKey<NoteRecord> = Internal.createUniqueKey(NoteTable.NOTE, DSL.name("note_pkey"), arrayOf(NoteTable.NOTE.ID), true)
 val NOTE_MENTION_PKEY: UniqueKey<NoteMentionRecord> = Internal.createUniqueKey(NoteMentionTable.NOTE_MENTION, DSL.name("note_mention_pkey"), arrayOf(NoteMentionTable.NOTE_MENTION.ID), true)
@@ -50,6 +56,11 @@ val EDGE__EDGE_WORKSPACE_ID_FKEY: ForeignKey<EdgeRecord, WorkspaceRecord> = Inte
 val EDGE_TYPE__EDGE_TYPE_WORKSPACE_ID_FKEY: ForeignKey<EdgeTypeRecord, WorkspaceRecord> = Internal.createForeignKey(EdgeTypeTable.EDGE_TYPE, DSL.name("edge_type_workspace_id_fkey"), arrayOf(EdgeTypeTable.EDGE_TYPE.WORKSPACE_ID), db.keys.WORKSPACE_PKEY, arrayOf(WorkspaceTable.WORKSPACE.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val NODE__NODE_TYPE_FKEY: ForeignKey<NodeRecord, NodeTypeRecord> = Internal.createForeignKey(NodeTable.NODE, DSL.name("node_type_fkey"), arrayOf(NodeTable.NODE.TYPE), db.keys.NODE_TYPE_PKEY, arrayOf(NodeTypeTable.NODE_TYPE.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val NODE__NODE_WORKSPACE_ID_FKEY: ForeignKey<NodeRecord, WorkspaceRecord> = Internal.createForeignKey(NodeTable.NODE, DSL.name("node_workspace_id_fkey"), arrayOf(NodeTable.NODE.WORKSPACE_ID), db.keys.WORKSPACE_PKEY, arrayOf(WorkspaceTable.WORKSPACE.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val NODE_PROPERTY__NODE_PROPERTY_NODE_TYPE_ID_FKEY: ForeignKey<NodePropertyRecord, NodeTypeRecord> = Internal.createForeignKey(NodePropertyTable.NODE_PROPERTY, DSL.name("node_property_node_type_id_fkey"), arrayOf(NodePropertyTable.NODE_PROPERTY.NODE_TYPE_ID), db.keys.NODE_TYPE_PKEY, arrayOf(NodeTypeTable.NODE_TYPE.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val NODE_PROPERTY__NODE_PROPERTY_WORKSPACE_ID_FKEY: ForeignKey<NodePropertyRecord, WorkspaceRecord> = Internal.createForeignKey(NodePropertyTable.NODE_PROPERTY, DSL.name("node_property_workspace_id_fkey"), arrayOf(NodePropertyTable.NODE_PROPERTY.WORKSPACE_ID), db.keys.WORKSPACE_PKEY, arrayOf(WorkspaceTable.WORKSPACE.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val NODE_PROPERTY_VALUE__NODE_PROPERTY_VALUE_NODE_ID_FKEY: ForeignKey<NodePropertyValueRecord, NodeRecord> = Internal.createForeignKey(NodePropertyValueTable.NODE_PROPERTY_VALUE, DSL.name("node_property_value_node_id_fkey"), arrayOf(NodePropertyValueTable.NODE_PROPERTY_VALUE.NODE_ID), db.keys.NODE_PKEY, arrayOf(NodeTable.NODE.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val NODE_PROPERTY_VALUE__NODE_PROPERTY_VALUE_PROPERTY_ID_FKEY: ForeignKey<NodePropertyValueRecord, NodePropertyRecord> = Internal.createForeignKey(NodePropertyValueTable.NODE_PROPERTY_VALUE, DSL.name("node_property_value_property_id_fkey"), arrayOf(NodePropertyValueTable.NODE_PROPERTY_VALUE.PROPERTY_ID), db.keys.NODE_PROPERTY_PKEY, arrayOf(NodePropertyTable.NODE_PROPERTY.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val NODE_PROPERTY_VALUE__NODE_PROPERTY_VALUE_WORKSPACE_ID_FKEY: ForeignKey<NodePropertyValueRecord, WorkspaceRecord> = Internal.createForeignKey(NodePropertyValueTable.NODE_PROPERTY_VALUE, DSL.name("node_property_value_workspace_id_fkey"), arrayOf(NodePropertyValueTable.NODE_PROPERTY_VALUE.WORKSPACE_ID), db.keys.WORKSPACE_PKEY, arrayOf(WorkspaceTable.WORKSPACE.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val NODE_TYPE__NODE_TYPE_WORKSPACE_ID_FKEY: ForeignKey<NodeTypeRecord, WorkspaceRecord> = Internal.createForeignKey(NodeTypeTable.NODE_TYPE, DSL.name("node_type_workspace_id_fkey"), arrayOf(NodeTypeTable.NODE_TYPE.WORKSPACE_ID), db.keys.WORKSPACE_PKEY, arrayOf(WorkspaceTable.WORKSPACE.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val NOTE__NOTE_WORKSPACE_ID_FKEY: ForeignKey<NoteRecord, WorkspaceRecord> = Internal.createForeignKey(NoteTable.NOTE, DSL.name("note_workspace_id_fkey"), arrayOf(NoteTable.NOTE.WORKSPACE_ID), db.keys.WORKSPACE_PKEY, arrayOf(WorkspaceTable.WORKSPACE.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val NOTE_MENTION__NOTE_MENTION_NODE_FKEY: ForeignKey<NoteMentionRecord, NodeRecord> = Internal.createForeignKey(NoteMentionTable.NOTE_MENTION, DSL.name("note_mention_node_fkey"), arrayOf(NoteMentionTable.NOTE_MENTION.NODE), db.keys.NODE_PKEY, arrayOf(NodeTable.NODE.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)

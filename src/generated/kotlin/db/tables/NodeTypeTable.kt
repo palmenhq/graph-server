@@ -6,9 +6,11 @@ package db.tables
 
 import db.PublicSchema
 import db.indexes.NODE_TYPE_WORKSPACE_ID_IDX
+import db.keys.NODE_PROPERTY__NODE_PROPERTY_NODE_TYPE_ID_FKEY
 import db.keys.NODE_TYPE_PKEY
 import db.keys.NODE_TYPE__NODE_TYPE_WORKSPACE_ID_FKEY
 import db.keys.NODE__NODE_TYPE_FKEY
+import db.tables.NodePropertyTable.NodePropertyPath
 import db.tables.NodeTable.NodePath
 import db.tables.WorkspaceTable.WorkspacePath
 import db.tables.records.NodeTypeRecord
@@ -146,6 +148,22 @@ open class NodeTypeTable(
      */
     fun workspace(): WorkspacePath = workspace
     val workspace: WorkspacePath by lazy { WorkspacePath(this, NODE_TYPE__NODE_TYPE_WORKSPACE_ID_FKEY, null) }
+
+    private lateinit var _nodeProperty: NodePropertyPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public_schema.node_property</code> table
+     */
+    fun nodeProperty(): NodePropertyPath {
+        if (!this::_nodeProperty.isInitialized)
+            _nodeProperty = NodePropertyPath(this, null, NODE_PROPERTY__NODE_PROPERTY_NODE_TYPE_ID_FKEY.inverseKey)
+
+        return _nodeProperty;
+    }
+
+    val nodeProperty: NodePropertyPath
+        get(): NodePropertyPath = nodeProperty()
 
     private lateinit var _node: NodePath
 

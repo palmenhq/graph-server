@@ -4,6 +4,8 @@ import app.config.Database
 import app.config.Environment
 import app.graph.GraphRepository
 import app.graph.GraphService
+import app.graph.PropertyRepository
+import app.graph.PropertyService
 import app.graph.graphRoutes
 import app.notes.NotesRepository
 import app.notes.NotesService
@@ -50,6 +52,8 @@ fun Application.main() {
 
   val graphService = GraphService(GraphRepository(dslContext), workspaceService)
 
+  val propertyService = PropertyService(PropertyRepository(dslContext), graphService)
+
   val notesService = NotesService(NotesRepository(dslContext), workspaceService, graphService)
 
   install(ContentNegotiation) {
@@ -64,7 +68,7 @@ fun Application.main() {
   routing {
     route("/api") {
       workspaceRoutes(workspaceService)
-      graphRoutes(graphService)
+      graphRoutes(graphService, propertyService)
       noteRoutes(notesService)
     }
     get(path = "/openapi.json") {

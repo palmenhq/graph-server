@@ -7,6 +7,8 @@ package db.tables.references
 
 import db.tables.EdgeTable
 import db.tables.EdgeTypeTable
+import db.tables.NodePropertyTable
+import db.tables.NodePropertyValueTable
 import db.tables.NodeTable
 import db.tables.NodeTypeTable
 import db.tables.NoteMentionTable
@@ -29,6 +31,16 @@ val EDGE_TYPE: EdgeTypeTable = EdgeTypeTable.EDGE_TYPE
  * The table <code>public_schema.node</code>.
  */
 val NODE: NodeTable = NodeTable.NODE
+
+/**
+ * The table <code>public_schema.node_property</code>.
+ */
+val NODE_PROPERTY: NodePropertyTable = NodePropertyTable.NODE_PROPERTY
+
+/**
+ * The table <code>public_schema.node_property_value</code>.
+ */
+val NODE_PROPERTY_VALUE: NodePropertyValueTable = NodePropertyValueTable.NODE_PROPERTY_VALUE
 
 /**
  * The table <code>public_schema.node_type</code>.

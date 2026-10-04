@@ -3,6 +3,8 @@ package app.graph.dtos
 import app.graph.db.NodeEdgeDbo
 import app.utils.ResourceId
 import db.tables.pojos.Node
+import db.tables.pojos.NodeProperty
+import db.tables.pojos.NodePropertyValue
 import kotlinx.serialization.Serializable
 
 sealed interface NodeDto {
@@ -18,6 +20,7 @@ data class FullNodeDto(
   override val nodeTypeId: ResourceId,
   val edges: List<EdgeDto>,
   val neighbors: List<NeighborNodeDto>,
+  val properties: List<PropertyValueDto>,
 ) : NodeDto
 
 @Serializable
@@ -30,6 +33,7 @@ data class NeighborNodeDto(
 fun Node.toFullDto(
   edges: List<NodeEdgeDbo>,
   neighbors: List<Node>,
+  properties: List<Pair<NodeProperty, NodePropertyValue>>,
 ): FullNodeDto =
   FullNodeDto(
     id = id!!,
@@ -37,6 +41,7 @@ fun Node.toFullDto(
     nodeTypeId = type!!,
     edges = edges.map { it.toEdgeDto() },
     neighbors = neighbors.map { it.toNeighborDto() },
+    properties = properties.map { it.second.toDto(it.first.name!!) },
   )
 
 fun Node.toNeighborDto(): NeighborNodeDto =

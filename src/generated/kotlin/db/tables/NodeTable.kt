@@ -12,10 +12,13 @@ import db.indexes.NODE_WORKSPACE_ID_IDX
 import db.keys.EDGE__EDGE_FROM_NODE_FKEY
 import db.keys.EDGE__EDGE_TO_NODE_FKEY
 import db.keys.NODE_PKEY
+import db.keys.NODE_PROPERTY_VALUE__NODE_PROPERTY_VALUE_NODE_ID_FKEY
 import db.keys.NODE__NODE_TYPE_FKEY
 import db.keys.NODE__NODE_WORKSPACE_ID_FKEY
 import db.keys.NOTE_MENTION__NOTE_MENTION_NODE_FKEY
 import db.tables.EdgeTable.EdgePath
+import db.tables.NodePropertyTable.NodePropertyPath
+import db.tables.NodePropertyValueTable.NodePropertyValuePath
 import db.tables.NodeTypeTable.NodeTypePath
 import db.tables.NoteMentionTable.NoteMentionPath
 import db.tables.WorkspaceTable.WorkspacePath
@@ -199,6 +202,22 @@ open class NodeTable(
     val edgeToNodeFkey: EdgePath
         get(): EdgePath = edgeToNodeFkey()
 
+    private lateinit var _nodePropertyValue: NodePropertyValuePath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public_schema.node_property_value</code> table
+     */
+    fun nodePropertyValue(): NodePropertyValuePath {
+        if (!this::_nodePropertyValue.isInitialized)
+            _nodePropertyValue = NodePropertyValuePath(this, null, NODE_PROPERTY_VALUE__NODE_PROPERTY_VALUE_NODE_ID_FKEY.inverseKey)
+
+        return _nodePropertyValue;
+    }
+
+    val nodePropertyValue: NodePropertyValuePath
+        get(): NodePropertyValuePath = nodePropertyValue()
+
     private lateinit var _noteMention: NoteMentionPath
 
     /**
@@ -214,6 +233,13 @@ open class NodeTable(
 
     val noteMention: NoteMentionPath
         get(): NoteMentionPath = noteMention()
+
+    /**
+     * Get the implicit many-to-many join path to the
+     * <code>public_schema.node_property</code> table
+     */
+    val nodeProperty: NodePropertyPath
+        get(): NodePropertyPath = nodePropertyValue().nodeProperty()
     override fun `as`(alias: String): NodeTable = NodeTable(DSL.name(alias), this)
     override fun `as`(alias: Name): NodeTable = NodeTable(alias, this)
     override fun `as`(alias: Table<*>): NodeTable = NodeTable(alias.qualifiedName, this)

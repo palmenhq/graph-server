@@ -6,6 +6,8 @@ package db
 
 import db.tables.EdgeTable
 import db.tables.EdgeTypeTable
+import db.tables.NodePropertyTable
+import db.tables.NodePropertyValueTable
 import db.tables.NodeTable
 import db.tables.NodeTypeTable
 import db.tables.NoteMentionTable
@@ -49,6 +51,16 @@ open class PublicSchema : SchemaImpl(DSL.name("public_schema"), DefaultCatalog.D
     val NODE: NodeTable get() = NodeTable.NODE
 
     /**
+     * The table <code>public_schema.node_property</code>.
+     */
+    val NODE_PROPERTY: NodePropertyTable get() = NodePropertyTable.NODE_PROPERTY
+
+    /**
+     * The table <code>public_schema.node_property_value</code>.
+     */
+    val NODE_PROPERTY_VALUE: NodePropertyValueTable get() = NodePropertyValueTable.NODE_PROPERTY_VALUE
+
+    /**
      * The table <code>public_schema.node_type</code>.
      */
     val NODE_TYPE: NodeTypeTable get() = NodeTypeTable.NODE_TYPE
@@ -74,6 +86,8 @@ open class PublicSchema : SchemaImpl(DSL.name("public_schema"), DefaultCatalog.D
         EdgeTable.EDGE,
         EdgeTypeTable.EDGE_TYPE,
         NodeTable.NODE,
+        NodePropertyTable.NODE_PROPERTY,
+        NodePropertyValueTable.NODE_PROPERTY_VALUE,
         NodeTypeTable.NODE_TYPE,
         NoteTable.NOTE,
         NoteMentionTable.NOTE_MENTION,
