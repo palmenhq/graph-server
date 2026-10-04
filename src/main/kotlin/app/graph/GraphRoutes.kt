@@ -15,6 +15,7 @@ import app.graph.dtos.toFullDto
 import app.graph.dtos.toNeighborDto
 import app.utils.http.ClientError
 import app.utils.http.ClientException
+import app.utils.http.Cursor
 import app.utils.http.ListResponse
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
@@ -174,11 +175,18 @@ fun Route.graphRoutes(graphService: GraphService) {
       get("getAll") {
         val nodeTypeId = call.queryParameters["nodeTypeId"]
         val searchQuery = call.queryParameters["search"]
-        val nodes =
-          graphService
-            .getNodes(workspaceId = call.workspaceId, nodeTypeId = nodeTypeId, searchQuery = searchQuery)
-            .map { it.toNeighborDto() }
-        call.respond(ListResponse(nodes))
+        val page =
+          try {
+            graphService.getNodes(
+              workspaceId = call.workspaceId,
+              nodeTypeId = nodeTypeId,
+              searchQuery = searchQuery,
+              cursor = call.queryParameters["cursor"]?.let { Cursor.decode(it) },
+            )
+          } catch (e: ClientException) {
+            return@get call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
+          }
+        call.respond(page.map { it.toNeighborDto() })
       }
 
       get("getById") {

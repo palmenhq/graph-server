@@ -6,6 +6,10 @@ import app.graph.validation.NoSuchEdgeTypeException
 import app.graph.validation.NoSuchNodeException
 import app.graph.validation.NoSuchNodeTypeException
 import app.utils.ResourceId
+import app.utils.http.Cursor
+import app.utils.http.DEFAULT_PAGE_SIZE
+import app.utils.http.Page
+import app.utils.http.toPage
 import app.utils.toResourceId
 import app.workspaces.WorkspaceService
 import app.workspaces.validation.NoSuchWorkspaceException
@@ -112,12 +116,19 @@ class GraphService(
     workspaceId: ResourceId,
     nodeTypeId: ResourceId? = null,
     searchQuery: String? = null,
-  ): List<Node> =
-    graphRepository.findNodes(
-      workspaceId = workspaceId,
-      nodeTypeId = nodeTypeId,
-      searchQuery = searchQuery,
-    )
+    cursor: Cursor? = null,
+    pageSize: Int = DEFAULT_PAGE_SIZE,
+  ): Page<Node> =
+    toPage(
+      graphRepository.findNodes(
+        workspaceId = workspaceId,
+        nodeTypeId = nodeTypeId,
+        searchQuery = searchQuery,
+        cursor = cursor,
+        limit = pageSize + 1,
+      ),
+      pageSize,
+    ) { Cursor(createdAt = it.createdAt!!, id = it.id!!) }
 
   fun getNodeTypeById(
     nodeTypeId: ResourceId,

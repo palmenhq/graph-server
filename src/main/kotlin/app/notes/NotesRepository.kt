@@ -3,6 +3,7 @@ package app.notes
 import app.notes.db.NoteDbo
 import app.notes.db.NoteMentionDbo
 import app.utils.ResourceId
+import app.utils.http.Cursor
 import db.tables.daos.NoteDao
 import db.tables.daos.NoteMentionDao
 import db.tables.pojos.Node
@@ -46,6 +47,8 @@ class NotesRepository(
   fun findNotes(
     workspaceId: ResourceId,
     mentionedNodeId: ResourceId? = null,
+    cursor: Cursor? = null,
+    limit: Int? = null,
   ): List<NoteDbo> {
     val notes =
       dsl
@@ -62,7 +65,9 @@ class NotesRepository(
           } else {
             DSL.noCondition()
           },
-        ).orderBy(NOTE.CREATED_AT.desc(), NOTE.ID)
+        ).and(cursor?.after(NOTE.CREATED_AT, NOTE.ID) ?: DSL.noCondition())
+        .orderBy(NOTE.CREATED_AT.desc(), NOTE.ID)
+        .let { if (limit != null) it.limit(limit) else it }
         .fetchInto(Note::class.java)
 
     return withMentions(notes)

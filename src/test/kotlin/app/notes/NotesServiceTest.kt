@@ -65,7 +65,7 @@ class NotesServiceTest {
     val workspace = TestHelp.workspaceService.createWorkspace("test")
 
     val created = notesService.createNote(body = body("Plain"), workspaceId = workspace.id!!, mentions = emptyList())
-    val notes = notesService.getAllNotes(workspace.id!!)
+    val notes = notesService.getAllNotes(workspace.id!!).items
 
     assertEquals(listOf(created.note.id), notes.map { it.note.id })
     assertEquals(emptyList<Any>(), notes.single().mentions)
@@ -101,11 +101,33 @@ class NotesServiceTest {
     val second = notesService.createNote(body("second"), workspace.id!!, listOf(MentionRequest(bob.id!!)))
     notesService.createNote(body("other"), otherWorkspace.id!!, emptyList())
 
-    val notes = notesService.getAllNotes(workspace.id!!)
+    val notes = notesService.getAllNotes(workspace.id!!).items
 
     assertEquals(listOf(second.note.id, first.note.id), notes.map { it.note.id })
     assertEquals(listOf(bob.id), notes[0].mentions.map { it.node.id })
     assertEquals(listOf(alice.id), notes[1].mentions.map { it.node.id })
+  }
+
+  @Test
+  fun `paginates all notes newest first with a cursor`() {
+    val workspace = TestHelp.workspaceService.createWorkspace("test")
+    val nodeType = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
+    val alice = graphService.createNode(nodeType.id!!, "Alice", workspaceId = workspace.id!!)
+    val notes = (1..3).map { notesService.createNote(body("note $it"), workspace.id!!, listOf(MentionRequest(alice.id!!))) }
+
+    val first = notesService.getAllNotes(workspace.id!!, pageSize = 2)
+    val second = notesService.getAllNotes(workspace.id!!, cursor = first.nextCursor, pageSize = 2)
+
+    assertEquals(listOf(notes[2].note.id, notes[1].note.id), first.items.map { it.note.id })
+    assertEquals(listOf(notes[0].note.id), second.items.map { it.note.id })
+    assertEquals(
+      listOf(alice.id),
+      second.items
+        .single()
+        .mentions
+        .map { it.node.id },
+    )
+    assertNull(second.nextCursor)
   }
 
   @Test
@@ -115,7 +137,7 @@ class NotesServiceTest {
     val created = notesService.createNote(body("secret"), workspace.id!!, emptyList())
 
     assertNull(notesService.getNoteById(created.note.id!!, workspaceId = otherWorkspace.id!!))
-    assertEquals(emptyList<Any>(), notesService.getAllNotes(otherWorkspace.id!!))
+    assertEquals(emptyList<Any>(), notesService.getAllNotes(otherWorkspace.id!!).items)
   }
 
   @Test
@@ -162,7 +184,7 @@ class NotesServiceTest {
 
   @Test
   fun `gets no notes for invalid workspace`() {
-    assertEquals(emptyList<Any>(), notesService.getAllNotes("wsp:does-not-exist"))
+    assertEquals(emptyList<Any>(), notesService.getAllNotes("wsp:does-not-exist").items)
   }
 
   @Test
@@ -185,6 +207,6 @@ class NotesServiceTest {
     assertThrows<NoSuchMentionedNodeException> {
       notesService.createNote(body("nope"), workspace.id!!, listOf(MentionRequest("nde:does-not-exist")))
     }
-    assertEquals(emptyList<Any>(), notesService.getAllNotes(workspace.id!!))
+    assertEquals(emptyList<Any>(), notesService.getAllNotes(workspace.id!!).items)
   }
 }

@@ -5,11 +5,15 @@ import app.graph.validation.NoSuchEdgeException
 import app.graph.validation.NoSuchEdgeTypeException
 import app.graph.validation.NoSuchNodeException
 import app.graph.validation.NoSuchNodeTypeException
+import app.utils.http.Cursor
+import app.utils.http.InvalidCursorException
+import db.tables.pojos.Node
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
+import java.time.OffsetDateTime
 
 class GraphServiceTest {
   val graphService = GraphService(GraphRepository(TestHelp.dslContext), TestHelp.workspaceService)
@@ -101,14 +105,22 @@ class GraphServiceTest {
 
     assertEquals(
       setOf(alice.id, bob.id, acme.id),
-      graphService.getNodes(workspace.id!!).map { it.id }.toSet(),
+      graphService
+        .getNodes(workspace.id!!)
+        .items
+        .map { it.id }
+        .toSet(),
     )
     assertEquals(
       setOf(alice.id, bob.id),
-      graphService.getNodes(workspace.id!!, nodeTypeId = contact.id!!).map { it.id }.toSet(),
+      graphService
+        .getNodes(workspace.id!!, nodeTypeId = contact.id!!)
+        .items
+        .map { it.id }
+        .toSet(),
     )
-    assertEquals(listOf(acme.id), graphService.getNodes(workspace.id!!, nodeTypeId = company.id!!).map { it.id })
-    assertEquals(0, graphService.getNodes(otherWorkspace.id!!, nodeTypeId = contact.id!!).size)
+    assertEquals(listOf(acme.id), graphService.getNodes(workspace.id!!, nodeTypeId = company.id!!).items.map { it.id })
+    assertEquals(0, graphService.getNodes(otherWorkspace.id!!, nodeTypeId = contact.id!!).items.size)
   }
 
   @Test
@@ -128,26 +140,46 @@ class GraphServiceTest {
 
     assertEquals(
       setOf(alice.id, alicia.id, aliceCorp.id),
-      graphService.getNodes(workspace.id!!, searchQuery = "ali").map { it.id }.toSet(),
+      graphService
+        .getNodes(workspace.id!!, searchQuery = "ali")
+        .items
+        .map { it.id }
+        .toSet(),
     )
     assertEquals(
       setOf(alice.id, aliceCorp.id),
-      graphService.getNodes(workspace.id!!, searchQuery = "ALICE").map { it.id }.toSet(),
+      graphService
+        .getNodes(workspace.id!!, searchQuery = "ALICE")
+        .items
+        .map { it.id }
+        .toSet(),
     )
     assertEquals(
       setOf(alice.id),
-      graphService.getNodes(workspace.id!!, searchQuery = "anders").map { it.id }.toSet(),
+      graphService
+        .getNodes(workspace.id!!, searchQuery = "anders")
+        .items
+        .map { it.id }
+        .toSet(),
     )
     assertEquals(
       setOf(alice.id, alicia.id),
-      graphService.getNodes(workspace.id!!, nodeTypeId = contact.id!!, searchQuery = "ali").map { it.id }.toSet(),
+      graphService
+        .getNodes(workspace.id!!, nodeTypeId = contact.id!!, searchQuery = "ali")
+        .items
+        .map { it.id }
+        .toSet(),
     )
     assertEquals(
       setOf(alice.id, alicia.id, bob.id, aliceCorp.id),
-      graphService.getNodes(workspace.id!!, searchQuery = null).map { it.id }.toSet(),
+      graphService
+        .getNodes(workspace.id!!, searchQuery = null)
+        .items
+        .map { it.id }
+        .toSet(),
     )
-    assertEquals(0, graphService.getNodes(workspace.id!!, searchQuery = "mallory").size)
-    assertEquals(0, graphService.getNodes(otherWorkspace.id!!, searchQuery = "bob").size)
+    assertEquals(0, graphService.getNodes(workspace.id!!, searchQuery = "mallory").items.size)
+    assertEquals(0, graphService.getNodes(otherWorkspace.id!!, searchQuery = "bob").items.size)
   }
 
   @Test
@@ -221,8 +253,8 @@ class GraphServiceTest {
     graphService.deleteNode(bob.id!!, workspace.id!!)
 
     assertNull(graphService.getNodeById(bob.id!!, workspace.id!!))
-    assertEquals(listOf(alice.id), graphService.getNodes(workspace.id!!).map { it.id })
-    assertEquals(0, graphService.getNodes(workspace.id!!, searchQuery = "bob").size)
+    assertEquals(listOf(alice.id), graphService.getNodes(workspace.id!!).items.map { it.id })
+    assertEquals(0, graphService.getNodes(workspace.id!!, searchQuery = "bob").items.size)
     assertEquals(0, graphService.getEdgeNodesFromNode(alice.id!!, workspace.id!!).size)
     assertNull(graphService.getEdgeById(edge.id!!, workspace.id!!))
     assertThrows(NoSuchNodeException::class.java) { graphService.deleteNode(bob.id!!, workspace.id!!) }
@@ -245,7 +277,7 @@ class GraphServiceTest {
 
     // Existing nodes of the deleted type are kept
     assertNotNull(graphService.getNodeById(alice.id!!, workspace.id!!))
-    assertEquals(listOf(alice.id), graphService.getNodes(workspace.id!!).map { it.id })
+    assertEquals(listOf(alice.id), graphService.getNodes(workspace.id!!).items.map { it.id })
 
     // New nodes cannot be created with the deleted type
     assertThrows(NoSuchNodeTypeException::class.java) {
@@ -254,7 +286,7 @@ class GraphServiceTest {
     assertThrows(NoSuchNodeTypeException::class.java) {
       graphService.createNode(company.id!!, "Acme", workspaceId = TestHelp.workspaceService.createWorkspace("other").id!!)
     }
-    assertEquals(listOf(alice.id), graphService.getNodes(workspace.id!!).map { it.id })
+    assertEquals(listOf(alice.id), graphService.getNodes(workspace.id!!).items.map { it.id })
   }
 
   @Test
@@ -284,5 +316,61 @@ class GraphServiceTest {
       graphService.createEdge(knows.id!!, bob.id!!, alice.id!!, workspaceId = workspace.id!!)
     }
     assertEquals(1, graphService.getEdgeNodesFromNode(alice.id!!, workspace.id!!).size)
+  }
+
+  @Test
+  fun `paginates nodes newest first with a cursor`() {
+    val workspace = TestHelp.workspaceService.createWorkspace("test")
+    val contact = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
+    val nodes = (1..5).map { graphService.createNode(contact.id!!, "Node $it", workspaceId = workspace.id!!) }
+
+    val first = graphService.getNodes(workspace.id!!, pageSize = 2)
+    val second = graphService.getNodes(workspace.id!!, cursor = first.nextCursor, pageSize = 2)
+    val third = graphService.getNodes(workspace.id!!, cursor = second.nextCursor, pageSize = 2)
+
+    assertEquals(listOf(nodes[4].id, nodes[3].id), first.items.map { it.id })
+    assertEquals(listOf(nodes[2].id, nodes[1].id), second.items.map { it.id })
+    assertEquals(listOf(nodes[0].id), third.items.map { it.id })
+    assertNull(third.nextCursor)
+
+    // An exactly full last page has no next cursor
+    assertNull(graphService.getNodes(workspace.id!!, pageSize = 5).nextCursor)
+
+    // Filters are applied together with the cursor
+    val filtered = graphService.getNodes(workspace.id!!, searchQuery = "Node", cursor = first.nextCursor, pageSize = 10)
+    assertEquals(listOf(nodes[2].id, nodes[1].id, nodes[0].id), filtered.items.map { it.id })
+  }
+
+  @Test
+  fun `paginates nodes with identical creation times by id`() {
+    val workspace = TestHelp.workspaceService.createWorkspace("test")
+    val contact = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
+    val createdAt = OffsetDateTime.parse("2026-01-01T00:00:00Z")
+    val repository = GraphRepository(TestHelp.dslContext)
+    val ids =
+      (1..5)
+        .map { GraphService.newNodeId() }
+        .onEach {
+          repository.createNode(
+            Node(id = it, type = contact.id, title = it, workspaceId = workspace.id, createdAt = createdAt),
+          )
+        }.sorted()
+
+    val collected = mutableListOf<String?>()
+    var cursor: Cursor? = null
+    do {
+      val page = graphService.getNodes(workspace.id!!, cursor = cursor, pageSize = 2)
+      collected += page.items.map { it.id }
+      cursor = page.nextCursor?.encode()?.let { Cursor.decode(it) }
+    } while (cursor != null)
+
+    assertEquals(ids, collected)
+  }
+
+  @Test
+  fun `rejects invalid cursors`() {
+    assertThrows(InvalidCursorException::class.java) { Cursor.decode("not a cursor") }
+    assertThrows(InvalidCursorException::class.java) { Cursor.decode("bm9waXBl") }
+    assertThrows(InvalidCursorException::class.java) { Cursor.decode(Cursor(OffsetDateTime.now(), "").encode()) }
   }
 }

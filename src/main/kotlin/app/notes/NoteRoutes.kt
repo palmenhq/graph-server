@@ -4,6 +4,7 @@ import app.notes.dtos.CreateNoteRequest
 import app.notes.dtos.toDto
 import app.utils.http.ClientError
 import app.utils.http.ClientException
+import app.utils.http.Cursor
 import app.utils.http.ListResponse
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
@@ -36,13 +37,16 @@ fun Route.noteRoutes(notesService: NotesService) {
     }
 
     get("getAll") {
-      call.respond(
-        ListResponse(
-          notesService
-            .getAllNotes(workspaceId = call.workspaceId)
-            .map { it.toDto() },
-        ),
-      )
+      val page =
+        try {
+          notesService.getAllNotes(
+            workspaceId = call.workspaceId,
+            cursor = call.queryParameters["cursor"]?.let { Cursor.decode(it) },
+          )
+        } catch (e: ClientException) {
+          return@get call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
+        }
+      call.respond(page.map { it.toDto() })
     }
 
     get("getByMentionedNode") {

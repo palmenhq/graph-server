@@ -6,6 +6,10 @@ import app.notes.db.NoteMentionDbo
 import app.notes.dtos.MentionRequest
 import app.notes.validation.NoSuchMentionedNodeException
 import app.utils.ResourceId
+import app.utils.http.Cursor
+import app.utils.http.DEFAULT_PAGE_SIZE
+import app.utils.http.Page
+import app.utils.http.toPage
 import app.utils.toResourceId
 import app.workspaces.WorkspaceService
 import app.workspaces.validation.NoSuchWorkspaceException
@@ -66,7 +70,15 @@ class NotesService(
     workspaceId: ResourceId,
   ): NoteDbo? = notesRepository.findNoteById(noteId = noteId, workspaceId = workspaceId)
 
-  fun getAllNotes(workspaceId: ResourceId): List<NoteDbo> = notesRepository.findNotes(workspaceId)
+  fun getAllNotes(
+    workspaceId: ResourceId,
+    cursor: Cursor? = null,
+    pageSize: Int = DEFAULT_PAGE_SIZE,
+  ): Page<NoteDbo> =
+    toPage(
+      notesRepository.findNotes(workspaceId = workspaceId, cursor = cursor, limit = pageSize + 1),
+      pageSize,
+    ) { Cursor(createdAt = it.note.createdAt!!, id = it.note.id!!) }
 
   fun getNotesMentioningNode(
     nodeId: ResourceId,

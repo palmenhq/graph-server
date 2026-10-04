@@ -2,6 +2,7 @@ package app.graph
 
 import app.graph.db.NodeEdgeDbo
 import app.utils.ResourceId
+import app.utils.http.Cursor
 import db.tables.daos.EdgeDao
 import db.tables.daos.EdgeTypeDao
 import db.tables.daos.NodeDao
@@ -57,6 +58,8 @@ class GraphRepository(
     workspaceId: ResourceId,
     nodeTypeId: ResourceId? = null,
     searchQuery: String? = null,
+    cursor: Cursor? = null,
+    limit: Int,
   ): List<Node> =
     dsl
       .selectFrom(NODE)
@@ -64,7 +67,9 @@ class GraphRepository(
       .and(NODE.DELETED_AT.isNull)
       .and(if (nodeTypeId != null) NODE.TYPE.eq(nodeTypeId) else DSL.noCondition())
       .and(if (searchQuery != null) lower(NODE.TITLE).likeIgnoreCase(lower("%$searchQuery%")) else DSL.noCondition())
+      .and(cursor?.after(NODE.CREATED_AT, NODE.ID) ?: DSL.noCondition())
       .orderBy(NODE.CREATED_AT.desc(), NODE.ID)
+      .limit(limit)
       .fetchInto(Node::class.java)
 
   fun findNodeTypeById(
