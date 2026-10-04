@@ -119,6 +119,11 @@ open class EdgeTable(
      */
     val WORKSPACE_ID: TableField<EdgeRecord, String?> = createField(DSL.name("workspace_id"), SQLDataType.CLOB, this, "")
 
+    /**
+     * The column <code>public_schema.edge.deleted_at</code>.
+     */
+    val DELETED_AT: TableField<EdgeRecord, OffsetDateTime?> = createField(DSL.name("deleted_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "")
+
     private constructor(alias: Name, aliased: Table<EdgeRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<EdgeRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<EdgeRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)

@@ -39,6 +39,10 @@ open class EdgeTypeRecord() : UpdatableRecordImpl<EdgeTypeRecord>(EdgeTypeTable.
         set(value): Unit = set(4, value)
         get(): String? = get(4) as String?
 
+    open var deletedAt: OffsetDateTime?
+        set(value): Unit = set(5, value)
+        get(): OffsetDateTime? = get(5) as OffsetDateTime?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -48,12 +52,13 @@ open class EdgeTypeRecord() : UpdatableRecordImpl<EdgeTypeRecord>(EdgeTypeTable.
     /**
      * Create a detached, initialised EdgeTypeRecord
      */
-    constructor(id: String? = null, relationshipTitle: String? = null, reverseRelationshipTitle: String? = null, createdAt: OffsetDateTime? = null, workspaceId: String? = null): this() {
+    constructor(id: String? = null, relationshipTitle: String? = null, reverseRelationshipTitle: String? = null, createdAt: OffsetDateTime? = null, workspaceId: String? = null, deletedAt: OffsetDateTime? = null): this() {
         this.id = id
         this.relationshipTitle = relationshipTitle
         this.reverseRelationshipTitle = reverseRelationshipTitle
         this.createdAt = createdAt
         this.workspaceId = workspaceId
+        this.deletedAt = deletedAt
         resetTouchedOnNotNull()
     }
 
@@ -67,6 +72,7 @@ open class EdgeTypeRecord() : UpdatableRecordImpl<EdgeTypeRecord>(EdgeTypeTable.
             this.reverseRelationshipTitle = value.reverseRelationshipTitle
             this.createdAt = value.createdAt
             this.workspaceId = value.workspaceId
+            this.deletedAt = value.deletedAt
             resetTouchedOnNotNull()
         }
     }

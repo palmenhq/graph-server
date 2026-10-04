@@ -19,7 +19,8 @@ data class Edge(
     var toNode: String? = null,
     var title: String? = null,
     var createdAt: OffsetDateTime? = null,
-    var workspaceId: String? = null
+    var workspaceId: String? = null,
+    var deletedAt: OffsetDateTime? = null
 ): Serializable {
 
 
@@ -73,6 +74,12 @@ data class Edge(
         }
         else if (this.workspaceId != o.workspaceId)
             return false
+        if (this.deletedAt == null) {
+            if (o.deletedAt != null)
+                return false
+        }
+        else if (this.deletedAt != o.deletedAt)
+            return false
         return true
     }
 
@@ -86,6 +93,7 @@ data class Edge(
         result = prime * result + (if (this.title == null) 0 else this.title.hashCode())
         result = prime * result + (if (this.createdAt == null) 0 else this.createdAt.hashCode())
         result = prime * result + (if (this.workspaceId == null) 0 else this.workspaceId.hashCode())
+        result = prime * result + (if (this.deletedAt == null) 0 else this.deletedAt.hashCode())
         return result
     }
 
@@ -99,6 +107,7 @@ data class Edge(
         sb.append(", ").append(title)
         sb.append(", ").append(createdAt)
         sb.append(", ").append(workspaceId)
+        sb.append(", ").append(deletedAt)
 
         sb.append(")")
         return sb.toString()

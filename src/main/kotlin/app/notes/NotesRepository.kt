@@ -78,6 +78,7 @@ class NotesRepository(
         .innerJoin(NODE)
         .on(NOTE_MENTION.NODE.eq(NODE.ID))
         .where(NOTE_MENTION.NOTE.`in`(notes.map { it.id }))
+        .and(NODE.DELETED_AT.isNull)
         .orderBy(NOTE_MENTION.ID)
         .fetch { row ->
           NoteMentionDbo(

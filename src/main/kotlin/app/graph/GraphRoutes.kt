@@ -4,6 +4,7 @@ import app.graph.dtos.CreateEdgeRequest
 import app.graph.dtos.CreateEdgeTypeRequest
 import app.graph.dtos.CreateNodeRequest
 import app.graph.dtos.CreateNodeTypeRequest
+import app.graph.dtos.DeleteRequest
 import app.graph.dtos.toDto
 import app.graph.dtos.toEdgeDto
 import app.graph.dtos.toFullDto
@@ -22,6 +23,19 @@ import io.ktor.server.routing.route
 
 private val ApplicationCall.workspaceId: String
   get() = parameters["workspaceId"]!!
+
+private fun Route.deleteRoute(delete: (id: String, workspaceId: String) -> Unit) {
+  post("delete") {
+    val req = call.receive<DeleteRequest>()
+    try {
+      delete(req.id, call.workspaceId)
+    } catch (e: ClientException) {
+      return@post call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
+    }
+
+    call.respond(HttpStatusCode.NoContent)
+  }
+}
 
 fun Route.graphRoutes(graphService: GraphService) {
   route("workspaces/{workspaceId}/graph") {
@@ -61,6 +75,8 @@ fun Route.graphRoutes(graphService: GraphService) {
 
         call.respond(nodeType.toDto())
       }
+
+      deleteRoute { id, workspaceId -> graphService.deleteNodeType(nodeTypeId = id, workspaceId = workspaceId) }
     }
 
     route("edgeTypes") {
@@ -103,6 +119,8 @@ fun Route.graphRoutes(graphService: GraphService) {
 
         call.respond(edgeType.toDto())
       }
+
+      deleteRoute { id, workspaceId -> graphService.deleteEdgeType(edgeTypeId = id, workspaceId = workspaceId) }
     }
 
     route("nodes") {
@@ -169,6 +187,8 @@ fun Route.graphRoutes(graphService: GraphService) {
             .map { it.toEdgeDto() }
         call.respond(ListResponse(edges))
       }
+
+      deleteRoute { id, workspaceId -> graphService.deleteNode(nodeId = id, workspaceId = workspaceId) }
     }
 
     route("edges") {
@@ -197,6 +217,8 @@ fun Route.graphRoutes(graphService: GraphService) {
 
         call.respond(result.toDto(edgeType))
       }
+
+      deleteRoute { id, workspaceId -> graphService.deleteEdge(edgeId = id, workspaceId = workspaceId) }
     }
   }
 }

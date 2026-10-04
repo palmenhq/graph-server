@@ -99,6 +99,11 @@ open class NodeTypeTable(
      */
     val WORKSPACE_ID: TableField<NodeTypeRecord, String?> = createField(DSL.name("workspace_id"), SQLDataType.CLOB, this, "")
 
+    /**
+     * The column <code>public_schema.node_type.deleted_at</code>.
+     */
+    val DELETED_AT: TableField<NodeTypeRecord, OffsetDateTime?> = createField(DSL.name("deleted_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "")
+
     private constructor(alias: Name, aliased: Table<NodeTypeRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<NodeTypeRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<NodeTypeRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)

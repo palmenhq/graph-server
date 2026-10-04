@@ -112,6 +112,11 @@ open class NodeTable(
      */
     val CREATED_AT: TableField<NodeRecord, OffsetDateTime?> = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false), this, "")
 
+    /**
+     * The column <code>public_schema.node.deleted_at</code>.
+     */
+    val DELETED_AT: TableField<NodeRecord, OffsetDateTime?> = createField(DSL.name("deleted_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "")
+
     private constructor(alias: Name, aliased: Table<NodeRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<NodeRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<NodeRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)

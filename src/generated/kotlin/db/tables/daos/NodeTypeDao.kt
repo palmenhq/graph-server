@@ -77,4 +77,15 @@ open class NodeTypeDao(configuration: Configuration?) : DAOImpl<NodeTypeRecord, 
      * Fetch records that have <code>workspace_id IN (values)</code>
      */
     fun fetchByWorkspaceId(vararg values: String): List<NodeType> = fetch(NodeTypeTable.NODE_TYPE.WORKSPACE_ID, *values)
+
+    /**
+     * Fetch records that have <code>deleted_at BETWEEN lowerInclusive AND
+     * upperInclusive</code>
+     */
+    fun fetchRangeOfDeletedAt(lowerInclusive: OffsetDateTime?, upperInclusive: OffsetDateTime?): List<NodeType> = fetchRange(NodeTypeTable.NODE_TYPE.DELETED_AT, lowerInclusive, upperInclusive)
+
+    /**
+     * Fetch records that have <code>deleted_at IN (values)</code>
+     */
+    fun fetchByDeletedAt(vararg values: OffsetDateTime): List<NodeType> = fetch(NodeTypeTable.NODE_TYPE.DELETED_AT, *values)
 }

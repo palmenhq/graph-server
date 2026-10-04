@@ -1,8 +1,14 @@
 package app.graph
 
 import TestHelp
+import app.graph.validation.NoSuchEdgeException
+import app.graph.validation.NoSuchEdgeTypeException
+import app.graph.validation.NoSuchNodeException
+import app.graph.validation.NoSuchNodeTypeException
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 
 class GraphServiceTest {
@@ -142,5 +148,107 @@ class GraphServiceTest {
     )
     assertEquals(0, graphService.getNodes(workspace.id!!, searchQuery = "mallory").size)
     assertEquals(0, graphService.getNodes(otherWorkspace.id!!, searchQuery = "bob").size)
+  }
+
+  @Test
+  fun `soft-deletes edge and excludes it from queries`() {
+    val workspace = TestHelp.workspaceService.createWorkspace("test")
+    val nodeType = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
+    val edgeType = graphService.createEdgeType(relationshipTitle = "knows", workspaceId = workspace.id!!)
+    val alice = graphService.createNode(nodeType.id!!, "Alice", workspaceId = workspace.id!!)
+    val bob = graphService.createNode(nodeType.id!!, "Bob", workspaceId = workspace.id!!)
+    val edge = graphService.createEdge(edgeType.id!!, alice.id!!, bob.id!!, workspaceId = workspace.id!!)
+
+    assertThrows(NoSuchEdgeException::class.java) { graphService.deleteEdge(edge.id!!, "invalid") }
+    assertNotNull(graphService.getEdgeById(edge.id!!, workspace.id!!))
+
+    graphService.deleteEdge(edge.id!!, workspace.id!!)
+
+    assertNull(graphService.getEdgeById(edge.id!!, workspace.id!!))
+    assertEquals(0, graphService.getEdgeNodesFromNode(alice.id!!, workspace.id!!).size)
+    assertThrows(NoSuchEdgeException::class.java) { graphService.deleteEdge(edge.id!!, workspace.id!!) }
+
+    // The same edge can be created again after deletion
+    val recreated = graphService.createEdge(edgeType.id!!, alice.id!!, bob.id!!, workspaceId = workspace.id!!)
+    assertEquals(listOf(recreated.id), graphService.getEdgeNodesFromNode(alice.id!!, workspace.id!!).map { it.edge.id })
+  }
+
+  @Test
+  fun `soft-deletes node with its edges and excludes them from queries`() {
+    val workspace = TestHelp.workspaceService.createWorkspace("test")
+    val nodeType = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
+    val edgeType = graphService.createEdgeType(relationshipTitle = "knows", workspaceId = workspace.id!!)
+    val alice = graphService.createNode(nodeType.id!!, "Alice", workspaceId = workspace.id!!)
+    val bob = graphService.createNode(nodeType.id!!, "Bob", workspaceId = workspace.id!!)
+    val edge = graphService.createEdge(edgeType.id!!, alice.id!!, bob.id!!, workspaceId = workspace.id!!)
+
+    assertThrows(NoSuchNodeException::class.java) { graphService.deleteNode(bob.id!!, "invalid") }
+
+    graphService.deleteNode(bob.id!!, workspace.id!!)
+
+    assertNull(graphService.getNodeById(bob.id!!, workspace.id!!))
+    assertEquals(listOf(alice.id), graphService.getNodes(workspace.id!!).map { it.id })
+    assertEquals(0, graphService.getNodes(workspace.id!!, searchQuery = "bob").size)
+    assertEquals(0, graphService.getEdgeNodesFromNode(alice.id!!, workspace.id!!).size)
+    assertNull(graphService.getEdgeById(edge.id!!, workspace.id!!))
+    assertThrows(NoSuchNodeException::class.java) { graphService.deleteNode(bob.id!!, workspace.id!!) }
+  }
+
+  @Test
+  fun `soft-deletes node type and keeps its nodes but prevents new ones`() {
+    val workspace = TestHelp.workspaceService.createWorkspace("test")
+    val contact = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
+    val company = graphService.createNodeType(title = "Company", workspaceId = workspace.id!!)
+    val alice = graphService.createNode(contact.id!!, "Alice", workspaceId = workspace.id!!)
+
+    assertThrows(NoSuchNodeTypeException::class.java) { graphService.deleteNodeType(contact.id!!, "invalid") }
+
+    graphService.deleteNodeType(contact.id!!, workspace.id!!)
+
+    assertNull(graphService.getNodeTypeById(contact.id!!, workspace.id!!))
+    assertEquals(listOf(company.id), graphService.getNodeTypes(workspace.id!!).map { it.id })
+    assertThrows(NoSuchNodeTypeException::class.java) { graphService.deleteNodeType(contact.id!!, workspace.id!!) }
+
+    // Existing nodes of the deleted type are kept
+    assertNotNull(graphService.getNodeById(alice.id!!, workspace.id!!))
+    assertEquals(listOf(alice.id), graphService.getNodes(workspace.id!!).map { it.id })
+
+    // New nodes cannot be created with the deleted type
+    assertThrows(NoSuchNodeTypeException::class.java) {
+      graphService.createNode(contact.id!!, "Bob", workspaceId = workspace.id!!)
+    }
+    assertThrows(NoSuchNodeTypeException::class.java) {
+      graphService.createNode(company.id!!, "Acme", workspaceId = TestHelp.workspaceService.createWorkspace("other").id!!)
+    }
+    assertEquals(listOf(alice.id), graphService.getNodes(workspace.id!!).map { it.id })
+  }
+
+  @Test
+  fun `soft-deletes edge type and keeps its edges but prevents new ones`() {
+    val workspace = TestHelp.workspaceService.createWorkspace("test")
+    val nodeType = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
+    val knows = graphService.createEdgeType(relationshipTitle = "knows", workspaceId = workspace.id!!)
+    val likes = graphService.createEdgeType(relationshipTitle = "likes", workspaceId = workspace.id!!)
+    val alice = graphService.createNode(nodeType.id!!, "Alice", workspaceId = workspace.id!!)
+    val bob = graphService.createNode(nodeType.id!!, "Bob", workspaceId = workspace.id!!)
+    val edge = graphService.createEdge(knows.id!!, alice.id!!, bob.id!!, workspaceId = workspace.id!!)
+
+    assertThrows(NoSuchEdgeTypeException::class.java) { graphService.deleteEdgeType(knows.id!!, "invalid") }
+
+    graphService.deleteEdgeType(knows.id!!, workspace.id!!)
+
+    assertNull(graphService.getEdgeTypeById(knows.id!!, workspace.id!!))
+    assertEquals(listOf(likes.id), graphService.getEdgeTypes(workspace.id!!).map { it.id })
+    assertThrows(NoSuchEdgeTypeException::class.java) { graphService.deleteEdgeType(knows.id!!, workspace.id!!) }
+
+    // Existing edges of the deleted type are kept
+    assertNotNull(graphService.getEdgeById(edge.id!!, workspace.id!!))
+    assertEquals(listOf(edge.id), graphService.getEdgeNodesFromNode(alice.id!!, workspace.id!!).map { it.edge.id })
+
+    // New edges cannot be created with the deleted type
+    assertThrows(NoSuchEdgeTypeException::class.java) {
+      graphService.createEdge(knows.id!!, bob.id!!, alice.id!!, workspaceId = workspace.id!!)
+    }
+    assertEquals(1, graphService.getEdgeNodesFromNode(alice.id!!, workspace.id!!).size)
   }
 }

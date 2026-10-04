@@ -17,7 +17,8 @@ data class EdgeType(
     var relationshipTitle: String? = null,
     var reverseRelationshipTitle: String? = null,
     var createdAt: OffsetDateTime? = null,
-    var workspaceId: String? = null
+    var workspaceId: String? = null,
+    var deletedAt: OffsetDateTime? = null
 ): Serializable {
 
 
@@ -59,6 +60,12 @@ data class EdgeType(
         }
         else if (this.workspaceId != o.workspaceId)
             return false
+        if (this.deletedAt == null) {
+            if (o.deletedAt != null)
+                return false
+        }
+        else if (this.deletedAt != o.deletedAt)
+            return false
         return true
     }
 
@@ -70,6 +77,7 @@ data class EdgeType(
         result = prime * result + (if (this.reverseRelationshipTitle == null) 0 else this.reverseRelationshipTitle.hashCode())
         result = prime * result + (if (this.createdAt == null) 0 else this.createdAt.hashCode())
         result = prime * result + (if (this.workspaceId == null) 0 else this.workspaceId.hashCode())
+        result = prime * result + (if (this.deletedAt == null) 0 else this.deletedAt.hashCode())
         return result
     }
 
@@ -81,6 +89,7 @@ data class EdgeType(
         sb.append(", ").append(reverseRelationshipTitle)
         sb.append(", ").append(createdAt)
         sb.append(", ").append(workspaceId)
+        sb.append(", ").append(deletedAt)
 
         sb.append(")")
         return sb.toString()

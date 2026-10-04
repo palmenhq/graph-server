@@ -47,6 +47,10 @@ open class EdgeRecord() : UpdatableRecordImpl<EdgeRecord>(EdgeTable.EDGE) {
         set(value): Unit = set(6, value)
         get(): String? = get(6) as String?
 
+    open var deletedAt: OffsetDateTime?
+        set(value): Unit = set(7, value)
+        get(): OffsetDateTime? = get(7) as OffsetDateTime?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -56,7 +60,7 @@ open class EdgeRecord() : UpdatableRecordImpl<EdgeRecord>(EdgeTable.EDGE) {
     /**
      * Create a detached, initialised EdgeRecord
      */
-    constructor(id: String? = null, type: String? = null, fromNode: String? = null, toNode: String? = null, title: String? = null, createdAt: OffsetDateTime? = null, workspaceId: String? = null): this() {
+    constructor(id: String? = null, type: String? = null, fromNode: String? = null, toNode: String? = null, title: String? = null, createdAt: OffsetDateTime? = null, workspaceId: String? = null, deletedAt: OffsetDateTime? = null): this() {
         this.id = id
         this.type = type
         this.fromNode = fromNode
@@ -64,6 +68,7 @@ open class EdgeRecord() : UpdatableRecordImpl<EdgeRecord>(EdgeTable.EDGE) {
         this.title = title
         this.createdAt = createdAt
         this.workspaceId = workspaceId
+        this.deletedAt = deletedAt
         resetTouchedOnNotNull()
     }
 
@@ -79,6 +84,7 @@ open class EdgeRecord() : UpdatableRecordImpl<EdgeRecord>(EdgeTable.EDGE) {
             this.title = value.title
             this.createdAt = value.createdAt
             this.workspaceId = value.workspaceId
+            this.deletedAt = value.deletedAt
             resetTouchedOnNotNull()
         }
     }

@@ -1,6 +1,10 @@
 package app.graph
 
 import app.graph.db.NodeEdgeDbo
+import app.graph.validation.NoSuchEdgeException
+import app.graph.validation.NoSuchEdgeTypeException
+import app.graph.validation.NoSuchNodeException
+import app.graph.validation.NoSuchNodeTypeException
 import app.utils.ResourceId
 import app.utils.toResourceId
 import app.workspaces.WorkspaceService
@@ -56,6 +60,8 @@ class GraphService(
     workspaceId: ResourceId,
   ): Node {
     val workspace = workspaceService.getById(workspaceId) ?: throw NoSuchWorkspaceException()
+    graphRepository.findNodeTypeById(nodeTypeId = nodeTypeId, workspaceId = workspace.id!!)
+      ?: throw NoSuchNodeTypeException(nodeTypeId)
     val node =
       Node(
         id = newNodeId(),
@@ -76,6 +82,8 @@ class GraphService(
     title: String? = null,
   ): Edge {
     val workspace = workspaceService.getById(workspaceId) ?: throw NoSuchWorkspaceException()
+    graphRepository.findEdgeTypeById(edgeTypeId = edgeTypeId, workspaceId = workspace.id!!)
+      ?: throw NoSuchEdgeTypeException(edgeTypeId)
 
     val edge =
       Edge(
@@ -141,6 +149,60 @@ class GraphService(
       nodeId = id,
       workspaceId = workspaceId,
     )
+
+  fun getEdgeById(
+    edgeId: ResourceId,
+    workspaceId: ResourceId,
+  ): Edge? =
+    graphRepository.findEdgeById(
+      edgeId = edgeId,
+      workspaceId = workspaceId,
+    )
+
+  /**
+   * Soft-deletes a node type. Existing nodes of the type are kept, but no new nodes can be created with it.
+   */
+  fun deleteNodeType(
+    nodeTypeId: ResourceId,
+    workspaceId: ResourceId,
+  ) {
+    if (!graphRepository.softDeleteNodeType(nodeTypeId, workspaceId, OffsetDateTime.now())) {
+      throw NoSuchNodeTypeException(nodeTypeId)
+    }
+  }
+
+  /**
+   * Soft-deletes an edge type. Existing edges of the type are kept, but no new edges can be created with it.
+   */
+  fun deleteEdgeType(
+    edgeTypeId: ResourceId,
+    workspaceId: ResourceId,
+  ) {
+    if (!graphRepository.softDeleteEdgeType(edgeTypeId, workspaceId, OffsetDateTime.now())) {
+      throw NoSuchEdgeTypeException(edgeTypeId)
+    }
+  }
+
+  /**
+   * Soft-deletes a node and all edges connected to it.
+   */
+  fun deleteNode(
+    nodeId: ResourceId,
+    workspaceId: ResourceId,
+  ) {
+    if (!graphRepository.softDeleteNode(nodeId, workspaceId, OffsetDateTime.now())) {
+      throw NoSuchNodeException(nodeId)
+    }
+  }
+
+  fun deleteEdge(
+    edgeId: ResourceId,
+    workspaceId: ResourceId,
+  ) {
+    if (!graphRepository.softDeleteEdge(edgeId, workspaceId, OffsetDateTime.now())) {
+      throw NoSuchEdgeException(edgeId)
+    }
+  }
 
   companion object {
     fun newNodeTypeId() =

@@ -88,4 +88,15 @@ open class NodeDao(configuration: Configuration?) : DAOImpl<NodeRecord, Node, St
      * Fetch records that have <code>created_at IN (values)</code>
      */
     fun fetchByCreatedAt(vararg values: OffsetDateTime): List<Node> = fetch(NodeTable.NODE.CREATED_AT, *values)
+
+    /**
+     * Fetch records that have <code>deleted_at BETWEEN lowerInclusive AND
+     * upperInclusive</code>
+     */
+    fun fetchRangeOfDeletedAt(lowerInclusive: OffsetDateTime?, upperInclusive: OffsetDateTime?): List<Node> = fetchRange(NodeTable.NODE.DELETED_AT, lowerInclusive, upperInclusive)
+
+    /**
+     * Fetch records that have <code>deleted_at IN (values)</code>
+     */
+    fun fetchByDeletedAt(vararg values: OffsetDateTime): List<Node> = fetch(NodeTable.NODE.DELETED_AT, *values)
 }

@@ -35,6 +35,10 @@ open class NodeTypeRecord() : UpdatableRecordImpl<NodeTypeRecord>(NodeTypeTable.
         set(value): Unit = set(3, value)
         get(): String? = get(3) as String?
 
+    open var deletedAt: OffsetDateTime?
+        set(value): Unit = set(4, value)
+        get(): OffsetDateTime? = get(4) as OffsetDateTime?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -44,11 +48,12 @@ open class NodeTypeRecord() : UpdatableRecordImpl<NodeTypeRecord>(NodeTypeTable.
     /**
      * Create a detached, initialised NodeTypeRecord
      */
-    constructor(id: String? = null, title: String? = null, createdAt: OffsetDateTime? = null, workspaceId: String? = null): this() {
+    constructor(id: String? = null, title: String? = null, createdAt: OffsetDateTime? = null, workspaceId: String? = null, deletedAt: OffsetDateTime? = null): this() {
         this.id = id
         this.title = title
         this.createdAt = createdAt
         this.workspaceId = workspaceId
+        this.deletedAt = deletedAt
         resetTouchedOnNotNull()
     }
 
@@ -61,6 +66,7 @@ open class NodeTypeRecord() : UpdatableRecordImpl<NodeTypeRecord>(NodeTypeTable.
             this.title = value.title
             this.createdAt = value.createdAt
             this.workspaceId = value.workspaceId
+            this.deletedAt = value.deletedAt
             resetTouchedOnNotNull()
         }
     }

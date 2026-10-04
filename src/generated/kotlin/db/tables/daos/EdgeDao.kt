@@ -110,4 +110,15 @@ open class EdgeDao(configuration: Configuration?) : DAOImpl<EdgeRecord, Edge, St
      * Fetch records that have <code>workspace_id IN (values)</code>
      */
     fun fetchByWorkspaceId(vararg values: String): List<Edge> = fetch(EdgeTable.EDGE.WORKSPACE_ID, *values)
+
+    /**
+     * Fetch records that have <code>deleted_at BETWEEN lowerInclusive AND
+     * upperInclusive</code>
+     */
+    fun fetchRangeOfDeletedAt(lowerInclusive: OffsetDateTime?, upperInclusive: OffsetDateTime?): List<Edge> = fetchRange(EdgeTable.EDGE.DELETED_AT, lowerInclusive, upperInclusive)
+
+    /**
+     * Fetch records that have <code>deleted_at IN (values)</code>
+     */
+    fun fetchByDeletedAt(vararg values: OffsetDateTime): List<Edge> = fetch(EdgeTable.EDGE.DELETED_AT, *values)
 }
