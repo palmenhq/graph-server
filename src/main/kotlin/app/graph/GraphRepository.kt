@@ -56,7 +56,7 @@ class GraphRepository(
       .where(NODE.WORKSPACE_ID.eq(workspaceId))
       .and(if (nodeTypeId != null) NODE.TYPE.eq(nodeTypeId) else DSL.noCondition())
       .and(if (searchQuery != null) lower(NODE.TITLE).likeIgnoreCase(lower("%$searchQuery%")) else DSL.noCondition())
-      .orderBy(NODE.CREATED_AT, NODE.ID)
+      .orderBy(NODE.CREATED_AT.desc(), NODE.ID)
       .fetchInto(Node::class.java)
 
   fun findNodeTypeById(
