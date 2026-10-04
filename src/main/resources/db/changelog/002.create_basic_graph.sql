@@ -1,10 +1,12 @@
 -- liquibase formatted sql
 -- changeset palmenhq:002
 
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 CREATE TABLE node_type
 (
     id           text PRIMARY KEY,
-    name         text        NOT NULL,
+    title        text        NOT NULL,
     created_at   timestamptz NOT NULL,
     workspace_id text REFERENCES workspace (id)
 );
@@ -23,19 +25,18 @@ CREATE TABLE node
 CREATE INDEX node_create_at_idx ON node (created_at);
 CREATE INDEX node_type_idx ON node (type, id);
 CREATE INDEX node_workspace_id_idx ON node (workspace_id);
+CREATE INDEX node_title_search_trgm ON node USING GIN (title gin_trgm_ops);
+CREATE INDEX node_title_search_trgm_lower ON node USING GIN (LOWER(title) gin_trgm_ops);
 
 CREATE TABLE edge_type
 (
-    id                        text PRIMARY KEY,
-    relationship_name         text        NOT NULL,
-    reverse_relationship_name text,
-    created_at                timestamptz NOT NULL,
-    source_node_type          text REFERENCES node_type (id),
-    target_node_type          text REFERENCES node_type (id),
-    workspace_id              text REFERENCES workspace (id)
+    id                         text PRIMARY KEY,
+    relationship_title         text        NOT NULL,
+    reverse_relationship_title text,
+    created_at                 timestamptz NOT NULL,
+    workspace_id               text REFERENCES workspace (id)
 );
 
-CREATE UNIQUE INDEX edge_type_unique_idx ON edge_type (source_node_type, target_node_type);
 CREATE INDEX edge_type_workspace_id_ixd ON edge_type (workspace_id);
 
 CREATE TABLE edge

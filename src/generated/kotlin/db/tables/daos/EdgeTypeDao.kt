@@ -46,27 +46,27 @@ open class EdgeTypeDao(configuration: Configuration?) : DAOImpl<EdgeTypeRecord, 
     fun fetchOneById(value: String): EdgeType? = fetchOne(EdgeTypeTable.EDGE_TYPE.ID, value)
 
     /**
-     * Fetch records that have <code>relationship_name BETWEEN lowerInclusive
+     * Fetch records that have <code>relationship_title BETWEEN lowerInclusive
      * AND upperInclusive</code>
      */
-    fun fetchRangeOfRelationshipName(lowerInclusive: String?, upperInclusive: String?): List<EdgeType> = fetchRange(EdgeTypeTable.EDGE_TYPE.RELATIONSHIP_NAME, lowerInclusive, upperInclusive)
+    fun fetchRangeOfRelationshipTitle(lowerInclusive: String?, upperInclusive: String?): List<EdgeType> = fetchRange(EdgeTypeTable.EDGE_TYPE.RELATIONSHIP_TITLE, lowerInclusive, upperInclusive)
 
     /**
-     * Fetch records that have <code>relationship_name IN (values)</code>
+     * Fetch records that have <code>relationship_title IN (values)</code>
      */
-    fun fetchByRelationshipName(vararg values: String): List<EdgeType> = fetch(EdgeTypeTable.EDGE_TYPE.RELATIONSHIP_NAME, *values)
+    fun fetchByRelationshipTitle(vararg values: String): List<EdgeType> = fetch(EdgeTypeTable.EDGE_TYPE.RELATIONSHIP_TITLE, *values)
 
     /**
-     * Fetch records that have <code>reverse_relationship_name BETWEEN
+     * Fetch records that have <code>reverse_relationship_title BETWEEN
      * lowerInclusive AND upperInclusive</code>
      */
-    fun fetchRangeOfReverseRelationshipName(lowerInclusive: String?, upperInclusive: String?): List<EdgeType> = fetchRange(EdgeTypeTable.EDGE_TYPE.REVERSE_RELATIONSHIP_NAME, lowerInclusive, upperInclusive)
+    fun fetchRangeOfReverseRelationshipTitle(lowerInclusive: String?, upperInclusive: String?): List<EdgeType> = fetchRange(EdgeTypeTable.EDGE_TYPE.REVERSE_RELATIONSHIP_TITLE, lowerInclusive, upperInclusive)
 
     /**
-     * Fetch records that have <code>reverse_relationship_name IN
+     * Fetch records that have <code>reverse_relationship_title IN
      * (values)</code>
      */
-    fun fetchByReverseRelationshipName(vararg values: String): List<EdgeType> = fetch(EdgeTypeTable.EDGE_TYPE.REVERSE_RELATIONSHIP_NAME, *values)
+    fun fetchByReverseRelationshipTitle(vararg values: String): List<EdgeType> = fetch(EdgeTypeTable.EDGE_TYPE.REVERSE_RELATIONSHIP_TITLE, *values)
 
     /**
      * Fetch records that have <code>created_at BETWEEN lowerInclusive AND
@@ -78,28 +78,6 @@ open class EdgeTypeDao(configuration: Configuration?) : DAOImpl<EdgeTypeRecord, 
      * Fetch records that have <code>created_at IN (values)</code>
      */
     fun fetchByCreatedAt(vararg values: OffsetDateTime): List<EdgeType> = fetch(EdgeTypeTable.EDGE_TYPE.CREATED_AT, *values)
-
-    /**
-     * Fetch records that have <code>source_node_type BETWEEN lowerInclusive AND
-     * upperInclusive</code>
-     */
-    fun fetchRangeOfSourceNodeType(lowerInclusive: String?, upperInclusive: String?): List<EdgeType> = fetchRange(EdgeTypeTable.EDGE_TYPE.SOURCE_NODE_TYPE, lowerInclusive, upperInclusive)
-
-    /**
-     * Fetch records that have <code>source_node_type IN (values)</code>
-     */
-    fun fetchBySourceNodeType(vararg values: String): List<EdgeType> = fetch(EdgeTypeTable.EDGE_TYPE.SOURCE_NODE_TYPE, *values)
-
-    /**
-     * Fetch records that have <code>target_node_type BETWEEN lowerInclusive AND
-     * upperInclusive</code>
-     */
-    fun fetchRangeOfTargetNodeType(lowerInclusive: String?, upperInclusive: String?): List<EdgeType> = fetchRange(EdgeTypeTable.EDGE_TYPE.TARGET_NODE_TYPE, lowerInclusive, upperInclusive)
-
-    /**
-     * Fetch records that have <code>target_node_type IN (values)</code>
-     */
-    fun fetchByTargetNodeType(vararg values: String): List<EdgeType> = fetch(EdgeTypeTable.EDGE_TYPE.TARGET_NODE_TYPE, *values)
 
     /**
      * Fetch records that have <code>workspace_id BETWEEN lowerInclusive AND

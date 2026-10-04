@@ -23,7 +23,7 @@ open class NodeTypeRecord() : UpdatableRecordImpl<NodeTypeRecord>(NodeTypeTable.
         set(value): Unit = set(0, value)
         get(): String? = get(0) as String?
 
-    open var name: String?
+    open var title: String?
         set(value): Unit = set(1, value)
         get(): String? = get(1) as String?
 
@@ -44,9 +44,9 @@ open class NodeTypeRecord() : UpdatableRecordImpl<NodeTypeRecord>(NodeTypeTable.
     /**
      * Create a detached, initialised NodeTypeRecord
      */
-    constructor(id: String? = null, name: String? = null, createdAt: OffsetDateTime? = null, workspaceId: String? = null): this() {
+    constructor(id: String? = null, title: String? = null, createdAt: OffsetDateTime? = null, workspaceId: String? = null): this() {
         this.id = id
-        this.name = name
+        this.title = title
         this.createdAt = createdAt
         this.workspaceId = workspaceId
         resetTouchedOnNotNull()
@@ -58,7 +58,7 @@ open class NodeTypeRecord() : UpdatableRecordImpl<NodeTypeRecord>(NodeTypeTable.
     constructor(value: NodeType?): this() {
         if (value != null) {
             this.id = value.id
-            this.name = value.name
+            this.title = value.title
             this.createdAt = value.createdAt
             this.workspaceId = value.workspaceId
             resetTouchedOnNotNull()

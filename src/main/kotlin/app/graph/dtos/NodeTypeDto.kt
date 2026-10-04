@@ -9,7 +9,7 @@ import kotlin.time.toKotlinInstant
 @Serializable
 data class NodeTypeDto(
   val id: ResourceId,
-  val name: String,
+  val title: String,
   val createdAt: Instant,
   val workspaceId: ResourceId,
 )
@@ -17,7 +17,7 @@ data class NodeTypeDto(
 fun NodeType.toDto() =
   NodeTypeDto(
     id = id!!,
-    name = name!!,
+    title = title!!,
     createdAt = createdAt!!.toInstant().toKotlinInstant(),
     workspaceId = workspaceId!!,
   )

@@ -23,11 +23,11 @@ open class EdgeTypeRecord() : UpdatableRecordImpl<EdgeTypeRecord>(EdgeTypeTable.
         set(value): Unit = set(0, value)
         get(): String? = get(0) as String?
 
-    open var relationshipName: String?
+    open var relationshipTitle: String?
         set(value): Unit = set(1, value)
         get(): String? = get(1) as String?
 
-    open var reverseRelationshipName: String?
+    open var reverseRelationshipTitle: String?
         set(value): Unit = set(2, value)
         get(): String? = get(2) as String?
 
@@ -35,17 +35,9 @@ open class EdgeTypeRecord() : UpdatableRecordImpl<EdgeTypeRecord>(EdgeTypeTable.
         set(value): Unit = set(3, value)
         get(): OffsetDateTime? = get(3) as OffsetDateTime?
 
-    open var sourceNodeType: String?
+    open var workspaceId: String?
         set(value): Unit = set(4, value)
         get(): String? = get(4) as String?
-
-    open var targetNodeType: String?
-        set(value): Unit = set(5, value)
-        get(): String? = get(5) as String?
-
-    open var workspaceId: String?
-        set(value): Unit = set(6, value)
-        get(): String? = get(6) as String?
 
     // -------------------------------------------------------------------------
     // Primary key information
@@ -56,13 +48,11 @@ open class EdgeTypeRecord() : UpdatableRecordImpl<EdgeTypeRecord>(EdgeTypeTable.
     /**
      * Create a detached, initialised EdgeTypeRecord
      */
-    constructor(id: String? = null, relationshipName: String? = null, reverseRelationshipName: String? = null, createdAt: OffsetDateTime? = null, sourceNodeType: String? = null, targetNodeType: String? = null, workspaceId: String? = null): this() {
+    constructor(id: String? = null, relationshipTitle: String? = null, reverseRelationshipTitle: String? = null, createdAt: OffsetDateTime? = null, workspaceId: String? = null): this() {
         this.id = id
-        this.relationshipName = relationshipName
-        this.reverseRelationshipName = reverseRelationshipName
+        this.relationshipTitle = relationshipTitle
+        this.reverseRelationshipTitle = reverseRelationshipTitle
         this.createdAt = createdAt
-        this.sourceNodeType = sourceNodeType
-        this.targetNodeType = targetNodeType
         this.workspaceId = workspaceId
         resetTouchedOnNotNull()
     }
@@ -73,11 +63,9 @@ open class EdgeTypeRecord() : UpdatableRecordImpl<EdgeTypeRecord>(EdgeTypeTable.
     constructor(value: EdgeType?): this() {
         if (value != null) {
             this.id = value.id
-            this.relationshipName = value.relationshipName
-            this.reverseRelationshipName = value.reverseRelationshipName
+            this.relationshipTitle = value.relationshipTitle
+            this.reverseRelationshipTitle = value.reverseRelationshipTitle
             this.createdAt = value.createdAt
-            this.sourceNodeType = value.sourceNodeType
-            this.targetNodeType = value.targetNodeType
             this.workspaceId = value.workspaceId
             resetTouchedOnNotNull()
         }

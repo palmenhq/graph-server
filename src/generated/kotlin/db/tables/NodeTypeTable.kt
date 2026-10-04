@@ -6,12 +6,9 @@ package db.tables
 
 import db.PublicSchema
 import db.indexes.NODE_TYPE_WORKSPACE_ID_IDX
-import db.keys.EDGE_TYPE__EDGE_TYPE_SOURCE_NODE_TYPE_FKEY
-import db.keys.EDGE_TYPE__EDGE_TYPE_TARGET_NODE_TYPE_FKEY
 import db.keys.NODE_TYPE_PKEY
 import db.keys.NODE_TYPE__NODE_TYPE_WORKSPACE_ID_FKEY
 import db.keys.NODE__NODE_TYPE_FKEY
-import db.tables.EdgeTypeTable.EdgeTypePath
 import db.tables.NodeTable.NodePath
 import db.tables.WorkspaceTable.WorkspacePath
 import db.tables.records.NodeTypeRecord
@@ -88,9 +85,9 @@ open class NodeTypeTable(
     val ID: TableField<NodeTypeRecord, String?> = createField(DSL.name("id"), SQLDataType.CLOB.nullable(false), this, "")
 
     /**
-     * The column <code>public_schema.node_type.name</code>.
+     * The column <code>public_schema.node_type.title</code>.
      */
-    val NAME: TableField<NodeTypeRecord, String?> = createField(DSL.name("name"), SQLDataType.CLOB.nullable(false), this, "")
+    val TITLE: TableField<NodeTypeRecord, String?> = createField(DSL.name("title"), SQLDataType.CLOB.nullable(false), this, "")
 
     /**
      * The column <code>public_schema.node_type.created_at</code>.
@@ -144,40 +141,6 @@ open class NodeTypeTable(
      */
     fun workspace(): WorkspacePath = workspace
     val workspace: WorkspacePath by lazy { WorkspacePath(this, NODE_TYPE__NODE_TYPE_WORKSPACE_ID_FKEY, null) }
-
-    private lateinit var _edgeTypeSourceNodeTypeFkey: EdgeTypePath
-
-    /**
-     * Get the implicit to-many join path to the
-     * <code>public_schema.edge_type</code> table, via the
-     * <code>edge_type_source_node_type_fkey</code> key
-     */
-    fun edgeTypeSourceNodeTypeFkey(): EdgeTypePath {
-        if (!this::_edgeTypeSourceNodeTypeFkey.isInitialized)
-            _edgeTypeSourceNodeTypeFkey = EdgeTypePath(this, null, EDGE_TYPE__EDGE_TYPE_SOURCE_NODE_TYPE_FKEY.inverseKey)
-
-        return _edgeTypeSourceNodeTypeFkey;
-    }
-
-    val edgeTypeSourceNodeTypeFkey: EdgeTypePath
-        get(): EdgeTypePath = edgeTypeSourceNodeTypeFkey()
-
-    private lateinit var _edgeTypeTargetNodeTypeFkey: EdgeTypePath
-
-    /**
-     * Get the implicit to-many join path to the
-     * <code>public_schema.edge_type</code> table, via the
-     * <code>edge_type_target_node_type_fkey</code> key
-     */
-    fun edgeTypeTargetNodeTypeFkey(): EdgeTypePath {
-        if (!this::_edgeTypeTargetNodeTypeFkey.isInitialized)
-            _edgeTypeTargetNodeTypeFkey = EdgeTypePath(this, null, EDGE_TYPE__EDGE_TYPE_TARGET_NODE_TYPE_FKEY.inverseKey)
-
-        return _edgeTypeTargetNodeTypeFkey;
-    }
-
-    val edgeTypeTargetNodeTypeFkey: EdgeTypePath
-        get(): EdgeTypePath = edgeTypeTargetNodeTypeFkey()
 
     private lateinit var _node: NodePath
 

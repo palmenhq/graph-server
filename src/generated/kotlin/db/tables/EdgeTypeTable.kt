@@ -5,13 +5,9 @@ package db.tables
 
 
 import db.PublicSchema
-import db.indexes.EDGE_TYPE_UNIQUE_IDX
 import db.indexes.EDGE_TYPE_WORKSPACE_ID_IXD
 import db.keys.EDGE_TYPE_PKEY
-import db.keys.EDGE_TYPE__EDGE_TYPE_SOURCE_NODE_TYPE_FKEY
-import db.keys.EDGE_TYPE__EDGE_TYPE_TARGET_NODE_TYPE_FKEY
 import db.keys.EDGE_TYPE__EDGE_TYPE_WORKSPACE_ID_FKEY
-import db.tables.NodeTypeTable.NodeTypePath
 import db.tables.WorkspaceTable.WorkspacePath
 import db.tables.records.EdgeTypeRecord
 
@@ -87,30 +83,20 @@ open class EdgeTypeTable(
     val ID: TableField<EdgeTypeRecord, String?> = createField(DSL.name("id"), SQLDataType.CLOB.nullable(false), this, "")
 
     /**
-     * The column <code>public_schema.edge_type.relationship_name</code>.
+     * The column <code>public_schema.edge_type.relationship_title</code>.
      */
-    val RELATIONSHIP_NAME: TableField<EdgeTypeRecord, String?> = createField(DSL.name("relationship_name"), SQLDataType.CLOB.nullable(false), this, "")
+    val RELATIONSHIP_TITLE: TableField<EdgeTypeRecord, String?> = createField(DSL.name("relationship_title"), SQLDataType.CLOB.nullable(false), this, "")
 
     /**
      * The column
-     * <code>public_schema.edge_type.reverse_relationship_name</code>.
+     * <code>public_schema.edge_type.reverse_relationship_title</code>.
      */
-    val REVERSE_RELATIONSHIP_NAME: TableField<EdgeTypeRecord, String?> = createField(DSL.name("reverse_relationship_name"), SQLDataType.CLOB, this, "")
+    val REVERSE_RELATIONSHIP_TITLE: TableField<EdgeTypeRecord, String?> = createField(DSL.name("reverse_relationship_title"), SQLDataType.CLOB, this, "")
 
     /**
      * The column <code>public_schema.edge_type.created_at</code>.
      */
     val CREATED_AT: TableField<EdgeTypeRecord, OffsetDateTime?> = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false), this, "")
-
-    /**
-     * The column <code>public_schema.edge_type.source_node_type</code>.
-     */
-    val SOURCE_NODE_TYPE: TableField<EdgeTypeRecord, String?> = createField(DSL.name("source_node_type"), SQLDataType.CLOB, this, "")
-
-    /**
-     * The column <code>public_schema.edge_type.target_node_type</code>.
-     */
-    val TARGET_NODE_TYPE: TableField<EdgeTypeRecord, String?> = createField(DSL.name("target_node_type"), SQLDataType.CLOB, this, "")
 
     /**
      * The column <code>public_schema.edge_type.workspace_id</code>.
@@ -149,23 +135,9 @@ open class EdgeTypeTable(
         override fun `as`(alias: Table<*>): EdgeTypePath = EdgeTypePath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else PublicSchema.PUBLIC_SCHEMA
-    override fun getIndexes(): List<Index> = listOf(EDGE_TYPE_UNIQUE_IDX, EDGE_TYPE_WORKSPACE_ID_IXD)
+    override fun getIndexes(): List<Index> = listOf(EDGE_TYPE_WORKSPACE_ID_IXD)
     override fun getPrimaryKey(): UniqueKey<EdgeTypeRecord> = EDGE_TYPE_PKEY
-    override fun getReferences(): List<ForeignKey<EdgeTypeRecord, *>> = listOf(EDGE_TYPE__EDGE_TYPE_SOURCE_NODE_TYPE_FKEY, EDGE_TYPE__EDGE_TYPE_TARGET_NODE_TYPE_FKEY, EDGE_TYPE__EDGE_TYPE_WORKSPACE_ID_FKEY)
-
-    /**
-     * Get the implicit join path to the <code>public_schema.node_type</code>
-     * table, via the <code>edge_type_source_node_type_fkey</code> key.
-     */
-    fun edgeTypeSourceNodeTypeFkey(): NodeTypePath = edgeTypeSourceNodeTypeFkey
-    val edgeTypeSourceNodeTypeFkey: NodeTypePath by lazy { NodeTypePath(this, EDGE_TYPE__EDGE_TYPE_SOURCE_NODE_TYPE_FKEY, null) }
-
-    /**
-     * Get the implicit join path to the <code>public_schema.node_type</code>
-     * table, via the <code>edge_type_target_node_type_fkey</code> key.
-     */
-    fun edgeTypeTargetNodeTypeFkey(): NodeTypePath = edgeTypeTargetNodeTypeFkey
-    val edgeTypeTargetNodeTypeFkey: NodeTypePath by lazy { NodeTypePath(this, EDGE_TYPE__EDGE_TYPE_TARGET_NODE_TYPE_FKEY, null) }
+    override fun getReferences(): List<ForeignKey<EdgeTypeRecord, *>> = listOf(EDGE_TYPE__EDGE_TYPE_WORKSPACE_ID_FKEY)
 
     /**
      * Get the implicit join path to the <code>public_schema.workspace</code>

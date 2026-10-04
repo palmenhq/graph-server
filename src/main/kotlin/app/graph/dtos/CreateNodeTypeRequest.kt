@@ -4,5 +4,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class CreateNodeTypeRequest(
-  val name: String,
+  val title: String,
 )

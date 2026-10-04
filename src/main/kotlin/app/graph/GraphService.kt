@@ -17,14 +17,14 @@ class GraphService(
   private val workspaceService: WorkspaceService,
 ) {
   fun createNodeType(
-    name: String,
+    title: String,
     workspaceId: ResourceId,
   ): NodeType {
     val workspace = workspaceService.getById(workspaceId) ?: throw NoSuchWorkspaceException()
     val nodeType =
       NodeType(
         id = newNodeTypeId(),
-        name = name,
+        title = title,
         createdAt = OffsetDateTime.now(),
         workspaceId = workspace.id!!,
       )
@@ -33,20 +33,16 @@ class GraphService(
   }
 
   fun createEdgeType(
-    sourceNodeType: ResourceId,
-    targetNodeType: ResourceId,
-    relationshipName: String,
+    relationshipTitle: String,
     workspaceId: ResourceId,
-    reverseRelationshipName: String? = null,
+    reverseRelationshipTitle: String? = null,
   ): EdgeType {
     val workspace = workspaceService.getById(workspaceId) ?: throw NoSuchWorkspaceException()
     val edgeType =
       EdgeType(
         id = newEdgeTypeId(),
-        relationshipName = relationshipName,
-        reverseRelationshipName = reverseRelationshipName,
-        sourceNodeType = sourceNodeType,
-        targetNodeType = targetNodeType,
+        relationshipTitle = relationshipTitle,
+        reverseRelationshipTitle = reverseRelationshipTitle,
         workspaceId = workspace.id!!,
         createdAt = OffsetDateTime.now(),
       )
@@ -95,9 +91,56 @@ class GraphService(
     return edge
   }
 
-  fun getNodeById(nodeId: ResourceId): Node? = graphRepository.findNodeById(nodeId)
+  fun getNodeById(
+    nodeId: ResourceId,
+    workspaceId: ResourceId,
+  ): Node? =
+    graphRepository.findNodeById(
+      nodeId = nodeId,
+      workspaceId = workspaceId,
+    )
 
-  fun getEdgeNodesFromNode(id: ResourceId): List<NodeEdgeDbo> = graphRepository.findEdgeNodesFromNode(id)
+  fun getNodes(
+    workspaceId: ResourceId,
+    nodeTypeId: ResourceId? = null,
+    searchQuery: String? = null,
+  ): List<Node> =
+    graphRepository.findNodes(
+      workspaceId = workspaceId,
+      nodeTypeId = nodeTypeId,
+      searchQuery = searchQuery,
+    )
+
+  fun getNodeTypeById(
+    nodeTypeId: ResourceId,
+    workspaceId: ResourceId,
+  ): NodeType? =
+    graphRepository.findNodeTypeById(
+      nodeTypeId = nodeTypeId,
+      workspaceId = workspaceId,
+    )
+
+  fun getNodeTypes(workspaceId: ResourceId): List<NodeType> = graphRepository.findNodeTypes(workspaceId)
+
+  fun getEdgeTypeById(
+    edgeTypeId: ResourceId,
+    workspaceId: ResourceId,
+  ): EdgeType? =
+    graphRepository.findEdgeTypeById(
+      edgeTypeId = edgeTypeId,
+      workspaceId = workspaceId,
+    )
+
+  fun getEdgeTypes(workspaceId: ResourceId): List<EdgeType> = graphRepository.findEdgeTypes(workspaceId)
+
+  fun getEdgeNodesFromNode(
+    id: ResourceId,
+    workspaceId: ResourceId,
+  ): List<NodeEdgeDbo> =
+    graphRepository.findEdgeNodesFromNode(
+      nodeId = id,
+      workspaceId = workspaceId,
+    )
 
   companion object {
     fun newNodeTypeId() =

@@ -14,11 +14,9 @@ import java.time.OffsetDateTime
 @Suppress("warnings")
 data class EdgeType(
     var id: String? = null,
-    var relationshipName: String? = null,
-    var reverseRelationshipName: String? = null,
+    var relationshipTitle: String? = null,
+    var reverseRelationshipTitle: String? = null,
     var createdAt: OffsetDateTime? = null,
-    var sourceNodeType: String? = null,
-    var targetNodeType: String? = null,
     var workspaceId: String? = null
 ): Serializable {
 
@@ -37,35 +35,23 @@ data class EdgeType(
         }
         else if (this.id != o.id)
             return false
-        if (this.relationshipName == null) {
-            if (o.relationshipName != null)
+        if (this.relationshipTitle == null) {
+            if (o.relationshipTitle != null)
                 return false
         }
-        else if (this.relationshipName != o.relationshipName)
+        else if (this.relationshipTitle != o.relationshipTitle)
             return false
-        if (this.reverseRelationshipName == null) {
-            if (o.reverseRelationshipName != null)
+        if (this.reverseRelationshipTitle == null) {
+            if (o.reverseRelationshipTitle != null)
                 return false
         }
-        else if (this.reverseRelationshipName != o.reverseRelationshipName)
+        else if (this.reverseRelationshipTitle != o.reverseRelationshipTitle)
             return false
         if (this.createdAt == null) {
             if (o.createdAt != null)
                 return false
         }
         else if (this.createdAt != o.createdAt)
-            return false
-        if (this.sourceNodeType == null) {
-            if (o.sourceNodeType != null)
-                return false
-        }
-        else if (this.sourceNodeType != o.sourceNodeType)
-            return false
-        if (this.targetNodeType == null) {
-            if (o.targetNodeType != null)
-                return false
-        }
-        else if (this.targetNodeType != o.targetNodeType)
             return false
         if (this.workspaceId == null) {
             if (o.workspaceId != null)
@@ -80,11 +66,9 @@ data class EdgeType(
         val prime = 31
         var result = 1
         result = prime * result + (if (this.id == null) 0 else this.id.hashCode())
-        result = prime * result + (if (this.relationshipName == null) 0 else this.relationshipName.hashCode())
-        result = prime * result + (if (this.reverseRelationshipName == null) 0 else this.reverseRelationshipName.hashCode())
+        result = prime * result + (if (this.relationshipTitle == null) 0 else this.relationshipTitle.hashCode())
+        result = prime * result + (if (this.reverseRelationshipTitle == null) 0 else this.reverseRelationshipTitle.hashCode())
         result = prime * result + (if (this.createdAt == null) 0 else this.createdAt.hashCode())
-        result = prime * result + (if (this.sourceNodeType == null) 0 else this.sourceNodeType.hashCode())
-        result = prime * result + (if (this.targetNodeType == null) 0 else this.targetNodeType.hashCode())
         result = prime * result + (if (this.workspaceId == null) 0 else this.workspaceId.hashCode())
         return result
     }
@@ -93,11 +77,9 @@ data class EdgeType(
         val sb = StringBuilder("EdgeType (")
 
         sb.append(id)
-        sb.append(", ").append(relationshipName)
-        sb.append(", ").append(reverseRelationshipName)
+        sb.append(", ").append(relationshipTitle)
+        sb.append(", ").append(reverseRelationshipTitle)
         sb.append(", ").append(createdAt)
-        sb.append(", ").append(sourceNodeType)
-        sb.append(", ").append(targetNodeType)
         sb.append(", ").append(workspaceId)
 
         sb.append(")")

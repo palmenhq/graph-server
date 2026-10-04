@@ -14,7 +14,7 @@ import java.time.OffsetDateTime
 @Suppress("warnings")
 data class NodeType(
     var id: String? = null,
-    var name: String? = null,
+    var title: String? = null,
     var createdAt: OffsetDateTime? = null,
     var workspaceId: String? = null
 ): Serializable {
@@ -34,11 +34,11 @@ data class NodeType(
         }
         else if (this.id != o.id)
             return false
-        if (this.name == null) {
-            if (o.name != null)
+        if (this.title == null) {
+            if (o.title != null)
                 return false
         }
-        else if (this.name != o.name)
+        else if (this.title != o.title)
             return false
         if (this.createdAt == null) {
             if (o.createdAt != null)
@@ -59,7 +59,7 @@ data class NodeType(
         val prime = 31
         var result = 1
         result = prime * result + (if (this.id == null) 0 else this.id.hashCode())
-        result = prime * result + (if (this.name == null) 0 else this.name.hashCode())
+        result = prime * result + (if (this.title == null) 0 else this.title.hashCode())
         result = prime * result + (if (this.createdAt == null) 0 else this.createdAt.hashCode())
         result = prime * result + (if (this.workspaceId == null) 0 else this.workspaceId.hashCode())
         return result
@@ -69,7 +69,7 @@ data class NodeType(
         val sb = StringBuilder("NodeType (")
 
         sb.append(id)
-        sb.append(", ").append(name)
+        sb.append(", ").append(title)
         sb.append(", ").append(createdAt)
         sb.append(", ").append(workspaceId)
 

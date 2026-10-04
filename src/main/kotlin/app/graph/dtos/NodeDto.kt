@@ -1,7 +1,7 @@
 package app.graph.dtos
 
+import app.graph.db.NodeEdgeDbo
 import app.utils.ResourceId
-import db.tables.pojos.Edge
 import db.tables.pojos.Node
 import kotlinx.serialization.Serializable
 
@@ -28,14 +28,14 @@ data class NeighborNodeDto(
 ) : NodeDto
 
 fun Node.toFullDto(
-  edges: List<Edge>,
+  edges: List<NodeEdgeDbo>,
   neighbors: List<Node>,
 ): FullNodeDto =
   FullNodeDto(
     id = id!!,
     title = title!!,
     nodeTypeId = type!!,
-    edges = edges.map { it.toDto() },
+    edges = edges.map { it.toEdgeDto() },
     neighbors = neighbors.map { it.toNeighborDto() },
   )
 

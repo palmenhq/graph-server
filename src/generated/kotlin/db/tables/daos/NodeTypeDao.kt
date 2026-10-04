@@ -46,15 +46,15 @@ open class NodeTypeDao(configuration: Configuration?) : DAOImpl<NodeTypeRecord, 
     fun fetchOneById(value: String): NodeType? = fetchOne(NodeTypeTable.NODE_TYPE.ID, value)
 
     /**
-     * Fetch records that have <code>name BETWEEN lowerInclusive AND
+     * Fetch records that have <code>title BETWEEN lowerInclusive AND
      * upperInclusive</code>
      */
-    fun fetchRangeOfName(lowerInclusive: String?, upperInclusive: String?): List<NodeType> = fetchRange(NodeTypeTable.NODE_TYPE.NAME, lowerInclusive, upperInclusive)
+    fun fetchRangeOfTitle(lowerInclusive: String?, upperInclusive: String?): List<NodeType> = fetchRange(NodeTypeTable.NODE_TYPE.TITLE, lowerInclusive, upperInclusive)
 
     /**
-     * Fetch records that have <code>name IN (values)</code>
+     * Fetch records that have <code>title IN (values)</code>
      */
-    fun fetchByName(vararg values: String): List<NodeType> = fetch(NodeTypeTable.NODE_TYPE.NAME, *values)
+    fun fetchByTitle(vararg values: String): List<NodeType> = fetch(NodeTypeTable.NODE_TYPE.TITLE, *values)
 
     /**
      * Fetch records that have <code>created_at BETWEEN lowerInclusive AND
