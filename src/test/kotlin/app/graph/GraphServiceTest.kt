@@ -60,6 +60,15 @@ class GraphServiceTest {
     assertEquals(edgeType.relationshipTitle, aliceContacts.first().edgeType.relationshipTitle)
 
     assertEquals(0, graphService.getEdgeNodesFromNode(alice.id!!, workspaceId = "invalid").size)
+
+    val edgeWithNodes = graphService.getEdgeWithNodesByEdgeId(edge.id!!, workspaceId = workspace.id!!)
+
+    assertEquals(edge.id, edgeWithNodes?.edge?.id)
+    assertEquals(alice.id, edgeWithNodes?.fromNode?.id)
+    assertEquals(bob.id, edgeWithNodes?.toNode?.id)
+    assertEquals(edgeType.id, edgeWithNodes?.edgeType?.id)
+
+    assertNull(graphService.getEdgeWithNodesByEdgeId(edge.id!!, workspaceId = "invalid"))
   }
 
   @Test

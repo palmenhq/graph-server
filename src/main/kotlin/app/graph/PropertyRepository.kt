@@ -7,6 +7,7 @@ import db.tables.pojos.NodePropertyValue
 import db.tables.references.NODE_PROPERTY
 import db.tables.references.NODE_PROPERTY_VALUE
 import org.jooq.DSLContext
+import java.time.OffsetDateTime
 
 class PropertyRepository(
   private val dsl: DSLContext,
@@ -51,6 +52,32 @@ class PropertyRepository(
       .and(NODE_PROPERTY.DELETED_AT.isNull)
       .orderBy(NODE_PROPERTY.CREATED_AT, NODE_PROPERTY.ID)
       .fetchInto(NodeProperty::class.java)
+
+  fun updatePropertyName(
+    propertyId: ResourceId,
+    workspaceId: ResourceId,
+    name: String,
+  ): Boolean =
+    dsl
+      .update(NODE_PROPERTY)
+      .set(NODE_PROPERTY.NAME, name)
+      .where(NODE_PROPERTY.ID.eq(propertyId))
+      .and(NODE_PROPERTY.WORKSPACE_ID.eq(workspaceId))
+      .and(NODE_PROPERTY.DELETED_AT.isNull)
+      .execute() > 0
+
+  fun softDeleteProperty(
+    propertyId: ResourceId,
+    workspaceId: ResourceId,
+    deletedAt: OffsetDateTime,
+  ): Boolean =
+    dsl
+      .update(NODE_PROPERTY)
+      .set(NODE_PROPERTY.DELETED_AT, deletedAt)
+      .where(NODE_PROPERTY.ID.eq(propertyId))
+      .and(NODE_PROPERTY.WORKSPACE_ID.eq(workspaceId))
+      .and(NODE_PROPERTY.DELETED_AT.isNull)
+      .execute() > 0
 
   /**
    * Inserts the value, or replaces the existing value of the property on the node.

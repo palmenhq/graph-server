@@ -5,7 +5,9 @@ import app.graph.dtos.CreateEdgeTypeRequest
 import app.graph.dtos.CreateNodeRequest
 import app.graph.dtos.CreateNodeTypeRequest
 import app.graph.dtos.CreatePropertyRequest
+import app.graph.dtos.DeletePropertyRequest
 import app.graph.dtos.DeleteRequest
+import app.graph.dtos.RenamePropertyRequest
 import app.graph.dtos.SetPropertyValueRequest
 import app.graph.dtos.UpdateEdgeRequest
 import app.graph.dtos.UpdateEdgeTypeRequest
@@ -26,7 +28,6 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
-import io.ktor.server.routing.patch
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 
@@ -88,19 +89,42 @@ fun Route.graphRoutes(
         call.respond(nodeType.toDto())
       }
 
-      patch("update") {
+      post("update") {
         val req = call.receive<UpdateNodeTypeRequest>()
         val result =
           try {
             graphService.updateNodeType(nodeTypeId = req.id, workspaceId = call.workspaceId, title = req.title)
           } catch (e: ClientException) {
-            return@patch call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
+            return@post call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
           }
 
         call.respond(result.toDto())
       }
 
       deleteRoute { id, workspaceId -> graphService.deleteNodeType(nodeTypeId = id, workspaceId = workspaceId) }
+
+      get("getProperties") {
+        val nodeTypeId =
+          call.queryParameters["nodeTypeId"]
+            ?: return@get call.respond(
+              status = HttpStatusCode.UnprocessableEntity,
+              message = ClientError(description = "Missing nodeTypeId", code = "missing_node_type_id"),
+            )
+
+        graphService.getNodeTypeById(nodeTypeId = nodeTypeId, workspaceId = call.workspaceId)
+          ?: return@get call.respond(
+            status = HttpStatusCode.UnprocessableEntity,
+            message = ClientError(description = "Node type not found", code = "node_type_not_found"),
+          )
+
+        call.respond(
+          ListResponse(
+            propertyService
+              .getPropertiesByNodeType(nodeTypeId = nodeTypeId, workspaceId = call.workspaceId)
+              .map { it.toDto() },
+          ),
+        )
+      }
 
       post("createProperty") {
         val req = call.receive<CreatePropertyRequest>()
@@ -110,6 +134,39 @@ fun Route.graphRoutes(
               nodeTypeId = req.nodeTypeId,
               name = req.name,
               valueType = req.valueType.toRecord(),
+              workspaceId = call.workspaceId,
+            )
+          } catch (e: ClientException) {
+            return@post call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
+          }
+
+        call.respond(result.toDto())
+      }
+
+      post("renameProperty") {
+        val req = call.receive<RenamePropertyRequest>()
+        val result =
+          try {
+            propertyService.renameProperty(
+              nodeTypeId = req.nodeTypeId,
+              propertyId = req.propertyId,
+              name = req.name,
+              workspaceId = call.workspaceId,
+            )
+          } catch (e: ClientException) {
+            return@post call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
+          }
+
+        call.respond(result.toDto())
+      }
+
+      post("deleteProperty") {
+        val req = call.receive<DeletePropertyRequest>()
+        val result =
+          try {
+            propertyService.deleteProperty(
+              nodeTypeId = req.nodeTypeId,
+              propertyId = req.propertyId,
               workspaceId = call.workspaceId,
             )
           } catch (e: ClientException) {
@@ -161,7 +218,7 @@ fun Route.graphRoutes(
         call.respond(edgeType.toDto())
       }
 
-      patch("update") {
+      post("update") {
         val req = call.receive<UpdateEdgeTypeRequest>()
         val result =
           try {
@@ -172,7 +229,7 @@ fun Route.graphRoutes(
               reverseRelationshipTitle = req.reverseRelationshipTitle,
             )
           } catch (e: ClientException) {
-            return@patch call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
+            return@post call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
           }
 
         call.respond(result.toDto())
@@ -241,7 +298,13 @@ fun Route.graphRoutes(
             .map { if (it.fromNode.id == id) it.toNode else it.fromNode }
             .distinctBy { it.id }
 
-        call.respond(node.toFullDto(edgeNodes, neighbors, propertyService.getPropertyValuesByNode(node, call.workspaceId)))
+        call.respond(
+          node.toFullDto(
+            edgeNodes,
+            neighbors,
+            propertyService.getPropertyValuesByNode(node, call.workspaceId),
+          ),
+        )
       }
 
       get("getEdges") {
@@ -259,13 +322,13 @@ fun Route.graphRoutes(
         call.respond(ListResponse(edges))
       }
 
-      patch("update") {
+      post("update") {
         val req = call.receive<UpdateNodeRequest>()
         val result =
           try {
             graphService.updateNode(nodeId = req.id, workspaceId = call.workspaceId, title = req.title)
           } catch (e: ClientException) {
-            return@patch call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
+            return@post call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
           }
 
         val edgeNodes = graphService.getEdgeNodesFromNode(id = req.id, workspaceId = call.workspaceId)
@@ -274,7 +337,13 @@ fun Route.graphRoutes(
             .map { if (it.fromNode.id == req.id) it.toNode else it.fromNode }
             .distinctBy { it.id }
 
-        call.respond(result.toFullDto(edgeNodes, neighbors, propertyService.getPropertyValuesByNode(result, call.workspaceId)))
+        call.respond(
+          result.toFullDto(
+            edgeNodes,
+            neighbors,
+            propertyService.getPropertyValuesByNode(result, call.workspaceId),
+          ),
+        )
       }
 
       deleteRoute { id, workspaceId -> graphService.deleteNode(nodeId = id, workspaceId = workspaceId) }
@@ -301,36 +370,37 @@ fun Route.graphRoutes(
       post("create") {
         val req = call.receive<CreateEdgeRequest>()
 
-        val edgeType =
-          graphService
-            .getEdgeTypeById(edgeTypeId = req.edgeTypeId, workspaceId = call.workspaceId) ?: return@post call.respond(
-            status = HttpStatusCode.UnprocessableEntity,
-            message = ClientError(description = "Edge type not found", code = "edge_type_not_found"),
-          )
+        graphService
+          .getEdgeTypeById(edgeTypeId = req.edgeTypeId, workspaceId = call.workspaceId) ?: return@post call.respond(
+          status = HttpStatusCode.UnprocessableEntity,
+          message = ClientError(description = "Edge type not found", code = "edge_type_not_found"),
+        )
 
         val result =
           try {
-            graphService.createEdge(
-              edgeTypeId = req.edgeTypeId,
-              fromNode = req.fromNode,
-              toNode = req.toNode,
-              workspaceId = call.workspaceId,
-              title = req.title,
-            )
+            val edge =
+              graphService.createEdge(
+                edgeTypeId = req.edgeTypeId,
+                fromNode = req.fromNode,
+                toNode = req.toNode,
+                workspaceId = call.workspaceId,
+                title = req.title,
+              )
+            graphService.getEdgeWithNodesByEdgeId(edgeId = edge.id!!, workspaceId = call.workspaceId)!!
           } catch (e: ClientException) {
             return@post call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
           }
 
-        call.respond(result.toDto(edgeType))
+        call.respond(result.toEdgeDto())
       }
 
-      patch("update") {
+      post("update") {
         val req = call.receive<UpdateEdgeRequest>()
         val result =
           try {
             graphService.updateEdge(edgeId = req.id, workspaceId = call.workspaceId, title = req.title)
           } catch (e: ClientException) {
-            return@patch call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
+            return@post call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
           }
 
         // Resolved via the edge's nodes so that edges of soft-deleted edge types are still returned

@@ -10,6 +10,7 @@ import app.graph.validation.PropertyNotOnNodeTypeException
 import app.graph.validation.UnsupportedPropertyValueTypeException
 import db.enums.PropertyValueType
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
@@ -93,6 +94,90 @@ class PropertyServiceTest {
       listOf(website2.id, instagram.id),
       propertyService.getPropertyValuesByNode(alice, workspace.id!!).map { it.second.propertyId },
     )
+  }
+
+  @Test
+  fun `renames property of node type`() {
+    val workspace = TestHelp.workspaceService.createWorkspace("test")
+    val otherWorkspace = TestHelp.workspaceService.createWorkspace("other")
+    val person = graphService.createNodeType(title = "Person", workspaceId = workspace.id!!)
+    val company = graphService.createNodeType(title = "Company", workspaceId = workspace.id!!)
+    val alice = graphService.createNode(person.id!!, "Alice", workspaceId = workspace.id!!)
+    val instagram = propertyService.createProperty(person.id!!, "instagram", PropertyValueType.text, workspace.id!!)
+    val website = propertyService.createProperty(person.id!!, "website", PropertyValueType.text, workspace.id!!)
+    propertyService.setPropertyValue(alice.id!!, instagram.id!!, "https://instagram.com/alice", workspace.id!!)
+
+    val renamed = propertyService.renameProperty(person.id!!, instagram.id!!, "  instagramUrl ", workspace.id!!)
+    assertEquals(instagram.id, renamed.id)
+    assertEquals("instagramUrl", renamed.name)
+    assertEquals(
+      listOf("instagramUrl", "website"),
+      propertyService.getPropertiesByNodeType(person.id!!, workspace.id!!).map { it.name },
+    )
+    // Values are kept
+    val value = propertyService.getPropertyValuesByNode(alice, workspace.id!!).single { it.first.id == instagram.id }
+    assertEquals("instagramUrl", value.first.name)
+    assertEquals("https://instagram.com/alice", value.second.value)
+
+    // Renaming to its own name is allowed, to another property's name is not
+    propertyService.renameProperty(person.id!!, instagram.id!!, "instagramUrl", workspace.id!!)
+    assertThrows(DuplicatePropertyException::class.java) {
+      propertyService.renameProperty(person.id!!, instagram.id!!, "website", workspace.id!!)
+    }
+    assertThrows(InvalidPropertyNameException::class.java) {
+      propertyService.renameProperty(person.id!!, instagram.id!!, " ", workspace.id!!)
+    }
+    assertThrows(PropertyNotOnNodeTypeException::class.java) {
+      propertyService.renameProperty(company.id!!, instagram.id!!, "x", workspace.id!!)
+    }
+    assertThrows(NoSuchPropertyException::class.java) {
+      propertyService.renameProperty(person.id!!, instagram.id!!, "x", otherWorkspace.id!!)
+    }
+
+    propertyService.deleteProperty(person.id!!, website.id!!, workspace.id!!)
+    assertThrows(NoSuchPropertyException::class.java) {
+      propertyService.renameProperty(person.id!!, website.id!!, "x", workspace.id!!)
+    }
+    // The name of a deleted property can be reused
+    propertyService.renameProperty(person.id!!, instagram.id!!, "website", workspace.id!!)
+  }
+
+  @Test
+  fun `deletes property from node type`() {
+    val workspace = TestHelp.workspaceService.createWorkspace("test")
+    val otherWorkspace = TestHelp.workspaceService.createWorkspace("other")
+    val person = graphService.createNodeType(title = "Person", workspaceId = workspace.id!!)
+    val company = graphService.createNodeType(title = "Company", workspaceId = workspace.id!!)
+    val alice = graphService.createNode(person.id!!, "Alice", workspaceId = workspace.id!!)
+    val instagram = propertyService.createProperty(person.id!!, "instagramUrl", PropertyValueType.text, workspace.id!!)
+    val website = propertyService.createProperty(person.id!!, "website", PropertyValueType.text, workspace.id!!)
+    propertyService.setPropertyValue(alice.id!!, instagram.id!!, "https://instagram.com/alice", workspace.id!!)
+
+    assertThrows(PropertyNotOnNodeTypeException::class.java) {
+      propertyService.deleteProperty(company.id!!, instagram.id!!, workspace.id!!)
+    }
+    assertThrows(NoSuchPropertyException::class.java) {
+      propertyService.deleteProperty(person.id!!, instagram.id!!, otherWorkspace.id!!)
+    }
+
+    val deleted = propertyService.deleteProperty(person.id!!, instagram.id!!, workspace.id!!)
+    assertEquals(instagram.id, deleted.id)
+    assertNotNull(deleted.deletedAt)
+    assertEquals(listOf(website.id), propertyService.getPropertiesByNodeType(person.id!!, workspace.id!!).map { it.id })
+    assertEquals(
+      listOf(website.id),
+      propertyService.getPropertyValuesByNode(alice, workspace.id!!).map { it.first.id },
+    )
+
+    assertThrows(NoSuchPropertyException::class.java) {
+      propertyService.deleteProperty(person.id!!, instagram.id!!, workspace.id!!)
+    }
+    assertThrows(NoSuchPropertyException::class.java) {
+      propertyService.setPropertyValue(alice.id!!, instagram.id!!, "x", workspace.id!!)
+    }
+
+    // The name can be reused after deletion
+    propertyService.createProperty(person.id!!, "instagramUrl", PropertyValueType.text, workspace.id!!)
   }
 
   @Test

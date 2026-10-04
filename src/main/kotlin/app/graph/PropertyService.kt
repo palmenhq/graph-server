@@ -58,6 +58,54 @@ class PropertyService(
     )
 
   /**
+   * Renames a property of a node type. The new name must not be used by another property of the node type.
+   */
+  fun renameProperty(
+    nodeTypeId: ResourceId,
+    propertyId: ResourceId,
+    name: String,
+    workspaceId: ResourceId,
+  ): NodeProperty {
+    val trimmedName = name.trim()
+    if (trimmedName.isEmpty()) throw InvalidPropertyNameException()
+
+    val property =
+      propertyRepository.findPropertyById(propertyId = propertyId, workspaceId = workspaceId)
+        ?: throw NoSuchPropertyException(propertyId)
+    if (property.nodeTypeId != nodeTypeId) throw PropertyNotOnNodeTypeException(propertyId, nodeTypeId)
+
+    val existing = propertyRepository.findPropertyByName(nodeTypeId, trimmedName, workspaceId)
+    if (existing != null && existing.id != propertyId) throw DuplicatePropertyException(trimmedName)
+
+    if (!propertyRepository.updatePropertyName(propertyId, workspaceId, trimmedName)) {
+      throw NoSuchPropertyException(propertyId)
+    }
+    property.name = trimmedName
+    return property
+  }
+
+  /**
+   * Soft-deletes a property of a node type. Its values on nodes are kept but no longer returned.
+   */
+  fun deleteProperty(
+    nodeTypeId: ResourceId,
+    propertyId: ResourceId,
+    workspaceId: ResourceId,
+  ): NodeProperty {
+    val property =
+      propertyRepository.findPropertyById(propertyId = propertyId, workspaceId = workspaceId)
+        ?: throw NoSuchPropertyException(propertyId)
+    if (property.nodeTypeId != nodeTypeId) throw PropertyNotOnNodeTypeException(propertyId, nodeTypeId)
+
+    val deletedAt = OffsetDateTime.now()
+    if (!propertyRepository.softDeleteProperty(propertyId, workspaceId, deletedAt)) {
+      throw NoSuchPropertyException(propertyId)
+    }
+    property.deletedAt = deletedAt
+    return property
+  }
+
+  /**
    * Sets (or clears, when [value] is null) the value of a property on a node.
    * The property must be defined on the node's type.
    */

@@ -15,7 +15,9 @@ import db.tables.references.EDGE
 import db.tables.references.EDGE_TYPE
 import db.tables.references.NODE
 import db.tables.references.NODE_TYPE
+import org.jooq.Condition
 import org.jooq.DSLContext
+import org.jooq.Record
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.lower
 import java.time.OffsetDateTime
@@ -27,6 +29,11 @@ class GraphRepository(
   private val edgeDao: EdgeDao = EdgeDao(dsl.configuration()),
   private val edgeTypeDao: EdgeTypeDao = EdgeTypeDao(dsl.configuration()),
 ) {
+  private val edgeAlias = EDGE.`as`("edge")
+  private val fromNodeAlias = NODE.`as`("from_node")
+  private val toNodeAlias = NODE.`as`("to_node")
+  private val edgeTypeAlias = EDGE_TYPE.`as`("edge_type")
+
   fun createNodeType(nodeType: NodeType) {
     nodeTypeDao.insert(nodeType)
   }
@@ -113,38 +120,13 @@ class GraphRepository(
   fun findEdgeNodesFromNode(
     nodeId: ResourceId,
     workspaceId: ResourceId,
-  ): List<NodeEdgeDbo> {
-    val edge = EDGE.`as`("edge")
-    val fromNode = NODE.`as`("from_node")
-    val toNode = NODE.`as`("to_node")
-    val edgeType = EDGE_TYPE.`as`("edge_type")
-    return dsl
-      .select(*edge.fields(), *edgeType.fields(), *fromNode.fields(), *toNode.fields())
-      .from(edge)
-      .innerJoin(fromNode)
-      .on(edge.FROM_NODE.eq(fromNode.ID))
-      .innerJoin(toNode)
-      .on(edge.TO_NODE.eq(toNode.ID))
-      .innerJoin(edgeType)
-      .on(edge.TYPE.eq(edgeType.ID))
-      .where(
-        edge.FROM_NODE
-          .eq(nodeId)
-          .or(edge.TO_NODE.eq(nodeId)),
-      ).and(fromNode.WORKSPACE_ID.eq(workspaceId))
-      .and(toNode.WORKSPACE_ID.eq(workspaceId))
-      .and(edge.DELETED_AT.isNull)
-      .and(fromNode.DELETED_AT.isNull)
-      .and(toNode.DELETED_AT.isNull)
-      .fetch { row ->
-        NodeEdgeDbo(
-          edge = row.into(edge).into(Edge::class.java),
-          edgeType = row.into(edgeType).into(EdgeType::class.java),
-          fromNode = row.into(fromNode).into(Node::class.java),
-          toNode = row.into(toNode).into(Node::class.java),
-        )
-      }
-  }
+  ): List<NodeEdgeDbo> =
+    selectEdgesWithNodes(
+      workspaceId,
+      edgeAlias.FROM_NODE
+        .eq(nodeId)
+        .or(edgeAlias.TO_NODE.eq(nodeId)),
+    ).fetch { it.toNodeEdgeDbo() }
 
   fun findEdgeById(
     edgeId: ResourceId,
@@ -281,4 +263,38 @@ class GraphRepository(
       .and(EDGE.WORKSPACE_ID.eq(workspaceId))
       .and(EDGE.DELETED_AT.isNull)
       .execute() > 0
+
+  fun findEdgeWithNodesByEdgeId(
+    edgeId: ResourceId,
+    workspaceId: ResourceId,
+  ): NodeEdgeDbo? =
+    selectEdgesWithNodes(workspaceId, edgeAlias.ID.eq(edgeId))
+      .fetchOne { it.toNodeEdgeDbo() }
+
+  private fun selectEdgesWithNodes(
+    workspaceId: ResourceId,
+    condition: Condition,
+  ) = dsl
+    .select(*edgeAlias.fields(), *edgeTypeAlias.fields(), *fromNodeAlias.fields(), *toNodeAlias.fields())
+    .from(edgeAlias)
+    .innerJoin(fromNodeAlias)
+    .on(edgeAlias.FROM_NODE.eq(fromNodeAlias.ID))
+    .innerJoin(toNodeAlias)
+    .on(edgeAlias.TO_NODE.eq(toNodeAlias.ID))
+    .innerJoin(edgeTypeAlias)
+    .on(edgeAlias.TYPE.eq(edgeTypeAlias.ID))
+    .where(condition)
+    .and(fromNodeAlias.WORKSPACE_ID.eq(workspaceId))
+    .and(toNodeAlias.WORKSPACE_ID.eq(workspaceId))
+    .and(edgeAlias.DELETED_AT.isNull)
+    .and(fromNodeAlias.DELETED_AT.isNull)
+    .and(toNodeAlias.DELETED_AT.isNull)
+
+  private fun Record.toNodeEdgeDbo() =
+    NodeEdgeDbo(
+      edge = into(edgeAlias).into(Edge::class.java),
+      edgeType = into(edgeTypeAlias).into(EdgeType::class.java),
+      fromNode = into(fromNodeAlias).into(Node::class.java),
+      toNode = into(toNodeAlias).into(Node::class.java),
+    )
 }

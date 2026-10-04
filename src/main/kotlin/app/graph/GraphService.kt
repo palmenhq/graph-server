@@ -170,6 +170,14 @@ class GraphService(
       workspaceId = workspaceId,
     )
 
+  fun getEdgeWithNodesByEdgeId(
+    edgeId: ResourceId,
+    workspaceId: ResourceId,
+  ) = graphRepository.findEdgeWithNodesByEdgeId(
+    edgeId = edgeId,
+    workspaceId = workspaceId,
+  )
+
   fun updateNodeType(
     nodeTypeId: ResourceId,
     workspaceId: ResourceId,

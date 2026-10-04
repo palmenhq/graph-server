@@ -17,6 +17,19 @@ data class CreatePropertyRequest(
 )
 
 @Serializable
+data class RenamePropertyRequest(
+  val nodeTypeId: ResourceId,
+  val propertyId: ResourceId,
+  val name: String,
+)
+
+@Serializable
+data class DeletePropertyRequest(
+  val nodeTypeId: ResourceId,
+  val propertyId: ResourceId,
+)
+
+@Serializable
 data class SetPropertyValueRequest(
   val nodeId: ResourceId,
   val propertyId: ResourceId,
