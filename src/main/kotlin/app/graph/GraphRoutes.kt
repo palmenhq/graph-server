@@ -5,6 +5,10 @@ import app.graph.dtos.CreateEdgeTypeRequest
 import app.graph.dtos.CreateNodeRequest
 import app.graph.dtos.CreateNodeTypeRequest
 import app.graph.dtos.DeleteRequest
+import app.graph.dtos.UpdateEdgeRequest
+import app.graph.dtos.UpdateEdgeTypeRequest
+import app.graph.dtos.UpdateNodeRequest
+import app.graph.dtos.UpdateNodeTypeRequest
 import app.graph.dtos.toDto
 import app.graph.dtos.toEdgeDto
 import app.graph.dtos.toFullDto
@@ -18,6 +22,7 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
+import io.ktor.server.routing.patch
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 
@@ -76,6 +81,18 @@ fun Route.graphRoutes(graphService: GraphService) {
         call.respond(nodeType.toDto())
       }
 
+      patch("update") {
+        val req = call.receive<UpdateNodeTypeRequest>()
+        val result =
+          try {
+            graphService.updateNodeType(nodeTypeId = req.id, workspaceId = call.workspaceId, title = req.title)
+          } catch (e: ClientException) {
+            return@patch call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
+          }
+
+        call.respond(result.toDto())
+      }
+
       deleteRoute { id, workspaceId -> graphService.deleteNodeType(nodeTypeId = id, workspaceId = workspaceId) }
     }
 
@@ -118,6 +135,23 @@ fun Route.graphRoutes(graphService: GraphService) {
           )
 
         call.respond(edgeType.toDto())
+      }
+
+      patch("update") {
+        val req = call.receive<UpdateEdgeTypeRequest>()
+        val result =
+          try {
+            graphService.updateEdgeType(
+              edgeTypeId = req.id,
+              workspaceId = call.workspaceId,
+              relationshipTitle = req.relationshipTitle,
+              reverseRelationshipTitle = req.reverseRelationshipTitle,
+            )
+          } catch (e: ClientException) {
+            return@patch call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
+          }
+
+        call.respond(result.toDto())
       }
 
       deleteRoute { id, workspaceId -> graphService.deleteEdgeType(edgeTypeId = id, workspaceId = workspaceId) }
@@ -188,6 +222,24 @@ fun Route.graphRoutes(graphService: GraphService) {
         call.respond(ListResponse(edges))
       }
 
+      patch("update") {
+        val req = call.receive<UpdateNodeRequest>()
+        val result =
+          try {
+            graphService.updateNode(nodeId = req.id, workspaceId = call.workspaceId, title = req.title)
+          } catch (e: ClientException) {
+            return@patch call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
+          }
+
+        val edgeNodes = graphService.getEdgeNodesFromNode(id = req.id, workspaceId = call.workspaceId)
+        val neighbors =
+          edgeNodes
+            .map { if (it.fromNode.id == req.id) it.toNode else it.fromNode }
+            .distinctBy { it.id }
+
+        call.respond(result.toFullDto(edgeNodes, neighbors))
+      }
+
       deleteRoute { id, workspaceId -> graphService.deleteNode(nodeId = id, workspaceId = workspaceId) }
     }
 
@@ -216,6 +268,24 @@ fun Route.graphRoutes(graphService: GraphService) {
           }
 
         call.respond(result.toDto(edgeType))
+      }
+
+      patch("update") {
+        val req = call.receive<UpdateEdgeRequest>()
+        val result =
+          try {
+            graphService.updateEdge(edgeId = req.id, workspaceId = call.workspaceId, title = req.title)
+          } catch (e: ClientException) {
+            return@patch call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
+          }
+
+        // Resolved via the edge's nodes so that edges of soft-deleted edge types are still returned
+        val edgeNode =
+          graphService
+            .getEdgeNodesFromNode(id = result.fromNode!!, workspaceId = call.workspaceId)
+            .first { it.edge.id == result.id }
+
+        call.respond(edgeNode.toEdgeDto())
       }
 
       deleteRoute { id, workspaceId -> graphService.deleteEdge(edgeId = id, workspaceId = workspaceId) }

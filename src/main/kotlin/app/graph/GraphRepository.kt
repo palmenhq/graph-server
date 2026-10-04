@@ -152,6 +152,60 @@ class GraphRepository(
       .and(EDGE.DELETED_AT.isNull)
       .fetchOneInto(Edge::class.java)
 
+  fun updateNodeType(
+    nodeTypeId: ResourceId,
+    workspaceId: ResourceId,
+    title: String,
+  ): Boolean =
+    dsl
+      .update(NODE_TYPE)
+      .set(NODE_TYPE.TITLE, title)
+      .where(NODE_TYPE.ID.eq(nodeTypeId))
+      .and(NODE_TYPE.WORKSPACE_ID.eq(workspaceId))
+      .and(NODE_TYPE.DELETED_AT.isNull)
+      .execute() > 0
+
+  fun updateEdgeType(
+    edgeTypeId: ResourceId,
+    workspaceId: ResourceId,
+    relationshipTitle: String,
+    reverseRelationshipTitle: String?,
+  ): Boolean =
+    dsl
+      .update(EDGE_TYPE)
+      .set(EDGE_TYPE.RELATIONSHIP_TITLE, relationshipTitle)
+      .set(EDGE_TYPE.REVERSE_RELATIONSHIP_TITLE, reverseRelationshipTitle)
+      .where(EDGE_TYPE.ID.eq(edgeTypeId))
+      .and(EDGE_TYPE.WORKSPACE_ID.eq(workspaceId))
+      .and(EDGE_TYPE.DELETED_AT.isNull)
+      .execute() > 0
+
+  fun updateNode(
+    nodeId: ResourceId,
+    workspaceId: ResourceId,
+    title: String,
+  ): Boolean =
+    dsl
+      .update(NODE)
+      .set(NODE.TITLE, title)
+      .where(NODE.ID.eq(nodeId))
+      .and(NODE.WORKSPACE_ID.eq(workspaceId))
+      .and(NODE.DELETED_AT.isNull)
+      .execute() > 0
+
+  fun updateEdge(
+    edgeId: ResourceId,
+    workspaceId: ResourceId,
+    title: String?,
+  ): Boolean =
+    dsl
+      .update(EDGE)
+      .set(EDGE.TITLE, title)
+      .where(EDGE.ID.eq(edgeId))
+      .and(EDGE.WORKSPACE_ID.eq(workspaceId))
+      .and(EDGE.DELETED_AT.isNull)
+      .execute() > 0
+
   fun softDeleteNodeType(
     nodeTypeId: ResourceId,
     workspaceId: ResourceId,

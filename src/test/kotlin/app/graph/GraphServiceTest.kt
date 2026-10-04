@@ -151,6 +151,40 @@ class GraphServiceTest {
   }
 
   @Test
+  fun `updates node type, edge type, node and edge`() {
+    val workspace = TestHelp.workspaceService.createWorkspace("test")
+    val nodeType = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
+    val edgeType = graphService.createEdgeType(relationshipTitle = "knows", workspaceId = workspace.id!!)
+    val alice = graphService.createNode(nodeType.id!!, "Alice", workspaceId = workspace.id!!)
+    val bob = graphService.createNode(nodeType.id!!, "Bob", workspaceId = workspace.id!!)
+    val edge = graphService.createEdge(edgeType.id!!, alice.id!!, bob.id!!, workspaceId = workspace.id!!)
+
+    assertEquals("Person", graphService.updateNodeType(nodeType.id!!, workspace.id!!, "Person").title)
+    assertEquals("Person", graphService.getNodeTypeById(nodeType.id!!, workspace.id!!)?.title)
+
+    val updatedEdgeType = graphService.updateEdgeType(edgeType.id!!, workspace.id!!, "manages", "is managed by")
+    assertEquals("manages", updatedEdgeType.relationshipTitle)
+    assertEquals("is managed by", updatedEdgeType.reverseRelationshipTitle)
+    assertEquals("manages", graphService.getEdgeTypeById(edgeType.id!!, workspace.id!!)?.relationshipTitle)
+
+    assertEquals("Alice Anderson", graphService.updateNode(alice.id!!, workspace.id!!, "Alice Anderson").title)
+    assertEquals("Alice Anderson", graphService.getNodeById(alice.id!!, workspace.id!!)?.title)
+
+    assertEquals("colleagues", graphService.updateEdge(edge.id!!, workspace.id!!, "colleagues").title)
+    assertEquals("colleagues", graphService.getEdgeById(edge.id!!, workspace.id!!)?.title)
+    assertNull(graphService.updateEdge(edge.id!!, workspace.id!!, null).title)
+
+    assertThrows(NoSuchNodeTypeException::class.java) { graphService.updateNodeType(nodeType.id!!, "invalid", "x") }
+    assertThrows(NoSuchEdgeTypeException::class.java) { graphService.updateEdgeType(edgeType.id!!, "invalid", "x") }
+    assertThrows(NoSuchNodeException::class.java) { graphService.updateNode(alice.id!!, "invalid", "x") }
+    assertThrows(NoSuchEdgeException::class.java) { graphService.updateEdge(edge.id!!, "invalid", "x") }
+
+    graphService.deleteNode(bob.id!!, workspace.id!!)
+    assertThrows(NoSuchNodeException::class.java) { graphService.updateNode(bob.id!!, workspace.id!!, "x") }
+    assertThrows(NoSuchEdgeException::class.java) { graphService.updateEdge(edge.id!!, workspace.id!!, "x") }
+  }
+
+  @Test
   fun `soft-deletes edge and excludes it from queries`() {
     val workspace = TestHelp.workspaceService.createWorkspace("test")
     val nodeType = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)

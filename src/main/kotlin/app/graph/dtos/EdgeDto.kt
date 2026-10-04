@@ -9,6 +9,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class EdgeDto(
   val id: ResourceId,
+  val title: String?,
   val relationshipTitle: String,
   val reverseRelationshipTitle: String?,
   val fromNode: ResourceId,
@@ -18,6 +19,7 @@ data class EdgeDto(
 fun Edge.toDto(edgeType: EdgeType) =
   EdgeDto(
     id = id!!,
+    title = title,
     relationshipTitle = edgeType.relationshipTitle!!,
     reverseRelationshipTitle = edgeType.reverseRelationshipTitle,
     fromNode = fromNode!!,

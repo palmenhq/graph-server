@@ -159,6 +159,57 @@ class GraphService(
       workspaceId = workspaceId,
     )
 
+  fun updateNodeType(
+    nodeTypeId: ResourceId,
+    workspaceId: ResourceId,
+    title: String,
+  ): NodeType {
+    if (!graphRepository.updateNodeType(nodeTypeId = nodeTypeId, workspaceId = workspaceId, title = title)) {
+      throw NoSuchNodeTypeException(nodeTypeId)
+    }
+    return graphRepository.findNodeTypeById(nodeTypeId, workspaceId) ?: throw NoSuchNodeTypeException(nodeTypeId)
+  }
+
+  fun updateEdgeType(
+    edgeTypeId: ResourceId,
+    workspaceId: ResourceId,
+    relationshipTitle: String,
+    reverseRelationshipTitle: String? = null,
+  ): EdgeType {
+    if (!graphRepository.updateEdgeType(
+        edgeTypeId = edgeTypeId,
+        workspaceId = workspaceId,
+        relationshipTitle = relationshipTitle,
+        reverseRelationshipTitle = reverseRelationshipTitle,
+      )
+    ) {
+      throw NoSuchEdgeTypeException(edgeTypeId)
+    }
+    return graphRepository.findEdgeTypeById(edgeTypeId, workspaceId) ?: throw NoSuchEdgeTypeException(edgeTypeId)
+  }
+
+  fun updateNode(
+    nodeId: ResourceId,
+    workspaceId: ResourceId,
+    title: String,
+  ): Node {
+    if (!graphRepository.updateNode(nodeId = nodeId, workspaceId = workspaceId, title = title)) {
+      throw NoSuchNodeException(nodeId)
+    }
+    return graphRepository.findNodeById(nodeId, workspaceId) ?: throw NoSuchNodeException(nodeId)
+  }
+
+  fun updateEdge(
+    edgeId: ResourceId,
+    workspaceId: ResourceId,
+    title: String?,
+  ): Edge {
+    if (!graphRepository.updateEdge(edgeId = edgeId, workspaceId = workspaceId, title = title)) {
+      throw NoSuchEdgeException(edgeId)
+    }
+    return graphRepository.findEdgeById(edgeId, workspaceId) ?: throw NoSuchEdgeException(edgeId)
+  }
+
   /**
    * Soft-deletes a node type. Existing nodes of the type are kept, but no new nodes can be created with it.
    */
