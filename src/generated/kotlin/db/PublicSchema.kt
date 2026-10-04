@@ -8,6 +8,8 @@ import db.tables.EdgeTable
 import db.tables.EdgeTypeTable
 import db.tables.NodeTable
 import db.tables.NodeTypeTable
+import db.tables.NoteMentionTable
+import db.tables.NoteTable
 import db.tables.WorkspaceTable
 
 import kotlin.collections.List
@@ -52,6 +54,16 @@ open class PublicSchema : SchemaImpl(DSL.name("public_schema"), DefaultCatalog.D
     val NODE_TYPE: NodeTypeTable get() = NodeTypeTable.NODE_TYPE
 
     /**
+     * The table <code>public_schema.note</code>.
+     */
+    val NOTE: NoteTable get() = NoteTable.NOTE
+
+    /**
+     * The table <code>public_schema.note_mention</code>.
+     */
+    val NOTE_MENTION: NoteMentionTable get() = NoteMentionTable.NOTE_MENTION
+
+    /**
      * The table <code>public_schema.workspace</code>.
      */
     val WORKSPACE: WorkspaceTable get() = WorkspaceTable.WORKSPACE
@@ -63,6 +75,8 @@ open class PublicSchema : SchemaImpl(DSL.name("public_schema"), DefaultCatalog.D
         EdgeTypeTable.EDGE_TYPE,
         NodeTable.NODE,
         NodeTypeTable.NODE_TYPE,
+        NoteTable.NOTE,
+        NoteMentionTable.NOTE_MENTION,
         WorkspaceTable.WORKSPACE
     )
 }

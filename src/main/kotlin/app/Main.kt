@@ -5,6 +5,9 @@ import app.config.Environment
 import app.graph.GraphRepository
 import app.graph.GraphService
 import app.graph.graphRoutes
+import app.notes.NotesRepository
+import app.notes.NotesService
+import app.notes.noteRoutes
 import app.workspaces.WorkspaceRepository
 import app.workspaces.WorkspaceService
 import app.workspaces.workspaceRoutes
@@ -47,6 +50,8 @@ fun Application.main() {
 
   val graphService = GraphService(GraphRepository(dslContext), workspaceService)
 
+  val notesService = NotesService(NotesRepository(dslContext), workspaceService, graphService)
+
   install(ContentNegotiation) {
     json(
       Json {
@@ -60,6 +65,7 @@ fun Application.main() {
     route("/api") {
       workspaceRoutes(workspaceService)
       graphRoutes(graphService)
+      noteRoutes(notesService)
     }
     get(path = "/openapi.json") {
       val doc = OpenApiDoc(info = OpenApiInfo(title = "Graph Crm", "0")) + routingRoot.descendants()

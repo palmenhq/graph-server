@@ -9,6 +9,8 @@ import db.tables.EdgeTable
 import db.tables.EdgeTypeTable
 import db.tables.NodeTable
 import db.tables.NodeTypeTable
+import db.tables.NoteMentionTable
+import db.tables.NoteTable
 import db.tables.WorkspaceTable
 
 
@@ -32,6 +34,16 @@ val NODE: NodeTable = NodeTable.NODE
  * The table <code>public_schema.node_type</code>.
  */
 val NODE_TYPE: NodeTypeTable = NodeTypeTable.NODE_TYPE
+
+/**
+ * The table <code>public_schema.note</code>.
+ */
+val NOTE: NoteTable = NoteTable.NOTE
+
+/**
+ * The table <code>public_schema.note_mention</code>.
+ */
+val NOTE_MENTION: NoteMentionTable = NoteMentionTable.NOTE_MENTION
 
 /**
  * The table <code>public_schema.workspace</code>.

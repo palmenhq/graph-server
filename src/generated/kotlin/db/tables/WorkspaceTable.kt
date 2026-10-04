@@ -9,11 +9,13 @@ import db.keys.EDGE_TYPE__EDGE_TYPE_WORKSPACE_ID_FKEY
 import db.keys.EDGE__EDGE_WORKSPACE_ID_FKEY
 import db.keys.NODE_TYPE__NODE_TYPE_WORKSPACE_ID_FKEY
 import db.keys.NODE__NODE_WORKSPACE_ID_FKEY
+import db.keys.NOTE__NOTE_WORKSPACE_ID_FKEY
 import db.keys.WORKSPACE_PKEY
 import db.tables.EdgeTable.EdgePath
 import db.tables.EdgeTypeTable.EdgeTypePath
 import db.tables.NodeTable.NodePath
 import db.tables.NodeTypeTable.NodeTypePath
+import db.tables.NoteTable.NotePath
 import db.tables.records.WorkspaceRecord
 
 import java.time.OffsetDateTime
@@ -192,6 +194,22 @@ open class WorkspaceTable(
 
     val node: NodePath
         get(): NodePath = node()
+
+    private lateinit var _note: NotePath
+
+    /**
+     * Get the implicit to-many join path to the <code>public_schema.note</code>
+     * table
+     */
+    fun note(): NotePath {
+        if (!this::_note.isInitialized)
+            _note = NotePath(this, null, NOTE__NOTE_WORKSPACE_ID_FKEY.inverseKey)
+
+        return _note;
+    }
+
+    val note: NotePath
+        get(): NotePath = note()
     override fun `as`(alias: String): WorkspaceTable = WorkspaceTable(DSL.name(alias), this)
     override fun `as`(alias: Name): WorkspaceTable = WorkspaceTable(alias, this)
     override fun `as`(alias: Table<*>): WorkspaceTable = WorkspaceTable(alias.qualifiedName, this)
