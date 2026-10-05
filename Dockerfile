@@ -31,6 +31,12 @@ COPY --chown=liquibase:liquibase src/main/resources/db /liquibase/changelog/src/
 ENV LIQUIBASE_SEARCH_PATH=/liquibase/changelog
 ENV LIQUIBASE_COMMAND_CHANGELOG_FILE=src/main/resources/db/changelog.yml
 
-# Uses the same DB_URL, DB_USER and DB_PASSWORD variables as the application
-ENTRYPOINT ["/bin/sh", "-c", "exec liquibase --url=\"$DB_URL\" --username=\"$DB_USER\" --password=\"$DB_PASSWORD\" \"$@\"", "--"]
+# Uses the same DB_URL, DB_USER and DB_PASSWORD variables as the application.
+# They are mapped to liquibase's own environment variables so that the
+# credentials never appear on the command line.
+ENTRYPOINT ["/bin/sh", "-c", "\
+  export LIQUIBASE_COMMAND_URL=\"${DB_URL:?DB_URL is not set}\" \
+         LIQUIBASE_COMMAND_USERNAME=\"${DB_USER:?DB_USER is not set}\" \
+         LIQUIBASE_COMMAND_PASSWORD=\"${DB_PASSWORD:?DB_PASSWORD is not set}\" \
+  && exec liquibase \"$@\"", "--"]
 CMD ["update"]
