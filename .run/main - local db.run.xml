@@ -6,6 +6,7 @@
       <env name="DB_PASSWORD" value="graphcrm" />
       <env name="DB_URL" value="jdbc:postgresql://127.0.0.1:54321/graphcrm" />
       <env name="DB_USER" value="graphcrm" />
+      <env name="SUPERADMIN_TOKEN_SECRET" value="secret" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="app.MainKt" />
     <module name="graph-crm.main" />

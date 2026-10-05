@@ -1,6 +1,5 @@
 package app.auth
 
-import app.module
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -10,7 +9,6 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.testing.testApplication
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
@@ -78,8 +76,7 @@ class AuthTest {
 
   @Test
   fun `obtains token and uses it to access protected routes`() =
-    testApplication {
-      application { module(dsl) }
+    TestHelp.testServer {
       val username = newUsername()
       authService.createUser(username, "secret")
 
@@ -97,8 +94,7 @@ class AuthTest {
 
   @Test
   fun `rejects invalid credentials`() =
-    testApplication {
-      application { module(dsl) }
+    TestHelp.testServer {
       val username = newUsername()
       authService.createUser(username, "secret")
 
@@ -109,9 +105,7 @@ class AuthTest {
 
   @Test
   fun `rejects requests without a valid session`() =
-    testApplication {
-      application { module(dsl) }
-
+    TestHelp.testServer {
       val missing = client.get("/api/workspaces/getAll")
       assertEquals(HttpStatusCode.Unauthorized, missing.status)
       assertTrue(missing.bodyAsText().contains("unauthorized"))
