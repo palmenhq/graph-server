@@ -1,0 +1,84 @@
+name: main
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  test:
+
+    runs-on: ubuntu-latest
+
+    services:
+      postgres-test:
+        image: 'postgres:17.6-alpine'
+        ports:
+          - '54322:5432'
+        env:
+          POSTGRES_USER: graphcrm_test
+          POSTGRES_PASSWORD: graphcrm_test
+          POSTGRES_DB: graphcrm_test
+        options: >-
+          --health-cmd "pg_isready -U graphcrm_test -d graphcrm_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+      - name: Run tests
+        run: make test
+
+  build_and_push:
+
+    needs: test
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+      - name: Build jar
+        run: ./gradlew assemble
+      - name: Build runner Docker image
+        run: |
+          docker build . \
+            --target runner \
+            --tag "rg.fr-par.scw.cloud/graph-crm-ops/graph-crm-server:${{ github.sha }}" \
+            --tag "rg.fr-par.scw.cloud/graph-crm-ops/graph-crm-server:latest"
+      - name: Build migrator Docker image
+        run: |
+          docker build . \
+            --target migrator \
+            --tag "rg.fr-par.scw.cloud/graph-crm-ops/graph-crm-migrator:${{ github.sha }}" \
+            --tag "rg.fr-par.scw.cloud/graph-crm-ops/graph-crm-migrator:latest"
+
+      - name: Login to Scaleway Container Registry
+        if: github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          username: nologin
+          password: ${{ secrets.SCW_SECRET_KEY }}
+          registry: rg.fr-par.scw.cloud/graph-crm-ops
+      - name: Push docker server images
+        if: github.ref == 'refs/heads/main'
+        run: docker push -a "rg.fr-par.scw.cloud/graph-crm-ops/graph-crm-server"
+      - name: Push docker migrator images
+        if: github.ref == 'refs/heads/main'
+        run: docker push -a "rg.fr-par.scw.cloud/graph-crm-ops/graph-crm-migrator"

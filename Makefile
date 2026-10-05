@@ -38,4 +38,4 @@ db-dangerously-clear-checksums:
 	./gradlew clearChecksums
 
 build/libs/graphcrm.jar: build.gradle.kts gradle/libs.versions.toml $(MAIN_SOURCES)
-	./gradlew build
+	./gradlew assemble

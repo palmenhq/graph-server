@@ -1,0 +1,3 @@
+*
+!build/libs/graphcrm.jar
+!src/main/resources/db

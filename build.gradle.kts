@@ -68,7 +68,7 @@ dependencies {
   testImplementation(libs.mockk)
 }
 
-val mainClassName = "MainKt"
+val mainClassName = "app.MainKt"
 
 sourceSets {
   main {
@@ -84,6 +84,8 @@ sourceSets {
     }
   }
 }
+
+application.mainClass = mainClassName
 
 tasks.jar {
   archiveBaseName = "graphcrm"
