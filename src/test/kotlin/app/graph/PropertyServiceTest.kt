@@ -7,7 +7,6 @@ import app.graph.validation.NoSuchNodeException
 import app.graph.validation.NoSuchNodeTypeException
 import app.graph.validation.NoSuchPropertyException
 import app.graph.validation.PropertyNotOnNodeTypeException
-import app.graph.validation.UnsupportedPropertyValueTypeException
 import db.enums.PropertyValueType
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull

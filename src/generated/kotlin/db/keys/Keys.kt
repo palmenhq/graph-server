@@ -5,6 +5,7 @@
 package db.keys
 
 
+import db.tables.AppUserTable
 import db.tables.EdgeTable
 import db.tables.EdgeTypeTable
 import db.tables.NodePropertyTable
@@ -13,7 +14,9 @@ import db.tables.NodeTable
 import db.tables.NodeTypeTable
 import db.tables.NoteMentionTable
 import db.tables.NoteTable
+import db.tables.SessionTable
 import db.tables.WorkspaceTable
+import db.tables.records.AppUserRecord
 import db.tables.records.EdgeRecord
 import db.tables.records.EdgeTypeRecord
 import db.tables.records.NodePropertyRecord
@@ -22,6 +25,7 @@ import db.tables.records.NodeRecord
 import db.tables.records.NodeTypeRecord
 import db.tables.records.NoteMentionRecord
 import db.tables.records.NoteRecord
+import db.tables.records.SessionRecord
 import db.tables.records.WorkspaceRecord
 
 import org.jooq.ForeignKey
@@ -36,6 +40,8 @@ import org.jooq.impl.QOM.ForeignKeyRule
 // UNIQUE and PRIMARY KEY definitions
 // -------------------------------------------------------------------------
 
+val APP_USER_PKEY: UniqueKey<AppUserRecord> = Internal.createUniqueKey(AppUserTable.APP_USER, DSL.name("app_user_pkey"), arrayOf(AppUserTable.APP_USER.ID), true)
+val APP_USER_USERNAME_KEY: UniqueKey<AppUserRecord> = Internal.createUniqueKey(AppUserTable.APP_USER, DSL.name("app_user_username_key"), arrayOf(AppUserTable.APP_USER.USERNAME), true)
 val EDGE_PKEY: UniqueKey<EdgeRecord> = Internal.createUniqueKey(EdgeTable.EDGE, DSL.name("edge_pkey"), arrayOf(EdgeTable.EDGE.ID), true)
 val EDGE_TYPE_PKEY: UniqueKey<EdgeTypeRecord> = Internal.createUniqueKey(EdgeTypeTable.EDGE_TYPE, DSL.name("edge_type_pkey"), arrayOf(EdgeTypeTable.EDGE_TYPE.ID), true)
 val NODE_PKEY: UniqueKey<NodeRecord> = Internal.createUniqueKey(NodeTable.NODE, DSL.name("node_pkey"), arrayOf(NodeTable.NODE.ID), true)
@@ -44,6 +50,7 @@ val NODE_PROPERTY_VALUE_PKEY: UniqueKey<NodePropertyValueRecord> = Internal.crea
 val NODE_TYPE_PKEY: UniqueKey<NodeTypeRecord> = Internal.createUniqueKey(NodeTypeTable.NODE_TYPE, DSL.name("node_type_pkey"), arrayOf(NodeTypeTable.NODE_TYPE.ID), true)
 val NOTE_PKEY: UniqueKey<NoteRecord> = Internal.createUniqueKey(NoteTable.NOTE, DSL.name("note_pkey"), arrayOf(NoteTable.NOTE.ID), true)
 val NOTE_MENTION_PKEY: UniqueKey<NoteMentionRecord> = Internal.createUniqueKey(NoteMentionTable.NOTE_MENTION, DSL.name("note_mention_pkey"), arrayOf(NoteMentionTable.NOTE_MENTION.ID), true)
+val SESSION_PKEY: UniqueKey<SessionRecord> = Internal.createUniqueKey(SessionTable.SESSION, DSL.name("session_pkey"), arrayOf(SessionTable.SESSION.ID), true)
 val WORKSPACE_PKEY: UniqueKey<WorkspaceRecord> = Internal.createUniqueKey(WorkspaceTable.WORKSPACE, DSL.name("workspace_pkey"), arrayOf(WorkspaceTable.WORKSPACE.ID), true)
 
 // -------------------------------------------------------------------------

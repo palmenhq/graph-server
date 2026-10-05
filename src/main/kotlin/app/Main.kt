@@ -1,5 +1,13 @@
 package app
 
+import app.auth.AuthService
+import app.auth.PostgresSessionStorage
+import app.auth.RequireSession
+import app.auth.SESSION_HEADER
+import app.auth.UserRepository
+import app.auth.UserSession
+import app.auth.authRoutes
+import app.auth.userSessionSerializer
 import app.config.Database
 import app.config.Environment
 import app.graph.GraphRepository
@@ -31,7 +39,10 @@ import io.ktor.server.routing.openapi.plus
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.server.routing.routingRoot
+import io.ktor.server.sessions.Sessions
+import io.ktor.server.sessions.header
 import kotlinx.serialization.json.Json
+import org.jooq.DSLContext
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL
 import org.postgresql.Driver
@@ -47,6 +58,13 @@ fun Application.main() {
       },
     )
   val dslContext = DSL.using(dataSource, SQLDialect.POSTGRES, Database.jooqSettings)
+
+  module(dslContext)
+}
+
+fun Application.module(dslContext: DSLContext) {
+  val sessionStorage = PostgresSessionStorage(dslContext)
+  val authService = AuthService(UserRepository(dslContext), sessionStorage)
 
   val workspaceService = WorkspaceService(WorkspaceRepository(dslContext))
 
@@ -65,8 +83,16 @@ fun Application.main() {
     )
   }
 
+  install(Sessions) {
+    header<UserSession>(SESSION_HEADER, sessionStorage) {
+      serializer = userSessionSerializer
+    }
+  }
+
   routing {
+    authRoutes(authService)
     route("/api") {
+      install(RequireSession)
       workspaceRoutes(workspaceService)
       graphRoutes(graphService, propertyService)
       noteRoutes(notesService)

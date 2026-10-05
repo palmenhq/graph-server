@@ -4,6 +4,7 @@
 package db
 
 
+import db.tables.AppUserTable
 import db.tables.EdgeTable
 import db.tables.EdgeTypeTable
 import db.tables.NodePropertyTable
@@ -12,6 +13,7 @@ import db.tables.NodeTable
 import db.tables.NodeTypeTable
 import db.tables.NoteMentionTable
 import db.tables.NoteTable
+import db.tables.SessionTable
 import db.tables.WorkspaceTable
 
 import kotlin.collections.List
@@ -34,6 +36,11 @@ open class PublicSchema : SchemaImpl(DSL.name("public_schema"), DefaultCatalog.D
          */
         val PUBLIC_SCHEMA: PublicSchema = PublicSchema()
     }
+
+    /**
+     * The table <code>public_schema.app_user</code>.
+     */
+    val APP_USER: AppUserTable get() = AppUserTable.APP_USER
 
     /**
      * The table <code>public_schema.edge</code>.
@@ -76,6 +83,11 @@ open class PublicSchema : SchemaImpl(DSL.name("public_schema"), DefaultCatalog.D
     val NOTE_MENTION: NoteMentionTable get() = NoteMentionTable.NOTE_MENTION
 
     /**
+     * The table <code>public_schema.session</code>.
+     */
+    val SESSION: SessionTable get() = SessionTable.SESSION
+
+    /**
      * The table <code>public_schema.workspace</code>.
      */
     val WORKSPACE: WorkspaceTable get() = WorkspaceTable.WORKSPACE
@@ -83,6 +95,7 @@ open class PublicSchema : SchemaImpl(DSL.name("public_schema"), DefaultCatalog.D
     override fun getCatalog(): Catalog = DefaultCatalog.DEFAULT_CATALOG
 
     override fun getTables(): List<Table<*>> = listOf(
+        AppUserTable.APP_USER,
         EdgeTable.EDGE,
         EdgeTypeTable.EDGE_TYPE,
         NodeTable.NODE,
@@ -91,6 +104,7 @@ open class PublicSchema : SchemaImpl(DSL.name("public_schema"), DefaultCatalog.D
         NodeTypeTable.NODE_TYPE,
         NoteTable.NOTE,
         NoteMentionTable.NOTE_MENTION,
+        SessionTable.SESSION,
         WorkspaceTable.WORKSPACE
     )
 }

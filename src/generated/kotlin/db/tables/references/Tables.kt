@@ -5,6 +5,7 @@
 package db.tables.references
 
 
+import db.tables.AppUserTable
 import db.tables.EdgeTable
 import db.tables.EdgeTypeTable
 import db.tables.NodePropertyTable
@@ -13,9 +14,15 @@ import db.tables.NodeTable
 import db.tables.NodeTypeTable
 import db.tables.NoteMentionTable
 import db.tables.NoteTable
+import db.tables.SessionTable
 import db.tables.WorkspaceTable
 
 
+
+/**
+ * The table <code>public_schema.app_user</code>.
+ */
+val APP_USER: AppUserTable = AppUserTable.APP_USER
 
 /**
  * The table <code>public_schema.edge</code>.
@@ -56,6 +63,11 @@ val NOTE: NoteTable = NoteTable.NOTE
  * The table <code>public_schema.note_mention</code>.
  */
 val NOTE_MENTION: NoteMentionTable = NoteMentionTable.NOTE_MENTION
+
+/**
+ * The table <code>public_schema.session</code>.
+ */
+val SESSION: SessionTable = SessionTable.SESSION
 
 /**
  * The table <code>public_schema.workspace</code>.

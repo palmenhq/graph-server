@@ -34,8 +34,6 @@ buildscript {
 }
 
 dependencies {
-  implementation(libs.kotlin.stdlib)
-
   implementation(libs.ktor.server.core)
   implementation(libs.ktor.server.netty)
   implementation(libs.ktor.server.content.negotiation)
@@ -44,7 +42,8 @@ dependencies {
   implementation(libs.ktor.server.call.logging)
   implementation(libs.ktor.server.openapi)
   implementation(libs.ktor.server.routing.openapi)
-  testImplementation("io.ktor:ktor-server-test-host-jvm:3.4.0")
+  implementation(libs.ktor.server.session)
+  testImplementation(libs.ktor.server.testHostJvm)
 
   ksp(libs.kotlinx.schema.ksp)
   implementation(libs.kotlinx.schema.generator.json)
