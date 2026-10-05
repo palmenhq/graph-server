@@ -82,3 +82,33 @@ jobs:
       - name: Push docker migrator images
         if: github.ref == 'refs/heads/main'
         run: docker push -a "rg.fr-par.scw.cloud/graph-crm-ops/graph-crm-migrator"
+
+  bump_infra:
+
+    needs: build_and_push
+    if: github.ref == 'refs/heads/main'
+
+    runs-on: ubuntu-latest
+
+    concurrency:
+      group: bump-infra-prod
+      cancel-in-progress: false
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: palmenhq/graphcrm-infra
+          ref: main
+          token: ${{ secrets.INFRA_REPO_TOKEN_SECRET }}
+          path: infra
+      - name: Bump graph-crm-server version
+        working-directory: infra
+        run: |
+          echo "${{ github.sha }}" > environments/prod/versions/graph-crm-server.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add environments/prod/versions/graph-crm-server.txt
+          git diff --cached --quiet && exit 0
+          git commit -m "graph-crm-server: ${{ github.sha }}" \
+            -m "From ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}"
+          git push origin HEAD:main
