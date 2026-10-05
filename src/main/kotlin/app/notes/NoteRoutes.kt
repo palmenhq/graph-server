@@ -20,7 +20,7 @@ private val ApplicationCall.workspaceId: String
   get() = parameters["workspaceId"]!!
 
 fun Route.noteRoutes(notesService: NotesService) {
-  route("workspaces/{workspaceId}/notes") {
+  route("notes") {
     post("create") {
       val req = call.receive<CreateNoteRequest>()
       val result =

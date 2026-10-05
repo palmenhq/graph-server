@@ -52,7 +52,7 @@ fun Route.graphRoutes(
   graphService: GraphService,
   propertyService: PropertyService,
 ) {
-  route("workspaces/{workspaceId}/graph") {
+  route("graph") {
     route("nodeTypes") {
       post("create") {
         val req = call.receive<CreateNodeTypeRequest>()

@@ -14,6 +14,7 @@ import db.tables.NodeTypeTable
 import db.tables.NoteMentionTable
 import db.tables.NoteTable
 import db.tables.SessionTable
+import db.tables.WorkspaceMemberTable
 import db.tables.WorkspaceTable
 
 import kotlin.collections.List
@@ -92,6 +93,11 @@ open class PublicSchema : SchemaImpl(DSL.name("public_schema"), DefaultCatalog.D
      */
     val WORKSPACE: WorkspaceTable get() = WorkspaceTable.WORKSPACE
 
+    /**
+     * The table <code>public_schema.workspace_member</code>.
+     */
+    val WORKSPACE_MEMBER: WorkspaceMemberTable get() = WorkspaceMemberTable.WORKSPACE_MEMBER
+
     override fun getCatalog(): Catalog = DefaultCatalog.DEFAULT_CATALOG
 
     override fun getTables(): List<Table<*>> = listOf(
@@ -105,6 +111,7 @@ open class PublicSchema : SchemaImpl(DSL.name("public_schema"), DefaultCatalog.D
         NoteTable.NOTE,
         NoteMentionTable.NOTE_MENTION,
         SessionTable.SESSION,
-        WorkspaceTable.WORKSPACE
+        WorkspaceTable.WORKSPACE,
+        WorkspaceMemberTable.WORKSPACE_MEMBER
     )
 }

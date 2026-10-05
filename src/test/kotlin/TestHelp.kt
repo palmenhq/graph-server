@@ -1,8 +1,13 @@
 import app.SUPERADMIN_PORT
+import app.auth.AuthService
+import app.auth.PostgresSessionStorage
+import app.auth.UserRepository
 import app.config.Database
 import app.module
 import app.workspaces.WorkspaceRepository
 import app.workspaces.WorkspaceService
+import db.tables.pojos.AppUser
+import db.tables.pojos.Workspace
 import io.ktor.server.engine.connector
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
@@ -10,6 +15,7 @@ import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import java.sql.Connection
 import java.sql.DriverManager
+import java.util.UUID
 
 object TestHelp {
   val dbConnection: Connection
@@ -24,6 +30,18 @@ object TestHelp {
     get() = DSL.using(dbConnection, Database.jooqSettings)
 
   val workspaceService = WorkspaceService(WorkspaceRepository(dslContext))
+
+  val authService = AuthService(UserRepository(dslContext), PostgresSessionStorage(dslContext))
+
+  fun createUser(password: String = "secret"): AppUser = authService.createUser("user-${UUID.randomUUID()}", password)
+
+  // Owner of workspaces created by service level tests that don't care about access control
+  val defaultUser: AppUser by lazy { createUser() }
+
+  fun createWorkspace(
+    name: String,
+    ownerId: String = defaultUser.id!!,
+  ): Workspace = workspaceService.createWorkspace(name, ownerId = ownerId)
 
   const val SUPERADMIN_SECRET = "test-superadmin-secret"
 

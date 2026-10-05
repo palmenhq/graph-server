@@ -20,7 +20,7 @@ class GraphServiceTest {
 
   @Test
   fun `creates node type and node and gets node by id`() {
-    val workspace = TestHelp.workspaceService.createWorkspace("test")
+    val workspace = TestHelp.createWorkspace("test")
 
     val nodeType = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
     val node = graphService.createNode(nodeType.id!!, "Alice", workspaceId = workspace.id!!)
@@ -36,7 +36,7 @@ class GraphServiceTest {
 
   @Test
   fun `creates edges on nodes and gets other node via edge`() {
-    val workspace = TestHelp.workspaceService.createWorkspace("test")
+    val workspace = TestHelp.createWorkspace("test")
 
     val nodeType = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
     val edgeType =
@@ -73,8 +73,8 @@ class GraphServiceTest {
 
   @Test
   fun `lists and gets node types and edge types in workspace`() {
-    val workspace = TestHelp.workspaceService.createWorkspace("test")
-    val otherWorkspace = TestHelp.workspaceService.createWorkspace("other")
+    val workspace = TestHelp.createWorkspace("test")
+    val otherWorkspace = TestHelp.createWorkspace("other")
 
     val contact = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
     val company = graphService.createNodeType(title = "Company", workspaceId = workspace.id!!)
@@ -100,8 +100,8 @@ class GraphServiceTest {
 
   @Test
   fun `lists nodes in workspace with optional node type filter`() {
-    val workspace = TestHelp.workspaceService.createWorkspace("test")
-    val otherWorkspace = TestHelp.workspaceService.createWorkspace("other")
+    val workspace = TestHelp.createWorkspace("test")
+    val otherWorkspace = TestHelp.createWorkspace("other")
 
     val contact = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
     val company = graphService.createNodeType(title = "Company", workspaceId = workspace.id!!)
@@ -134,8 +134,8 @@ class GraphServiceTest {
 
   @Test
   fun `searches nodes in workspace by title`() {
-    val workspace = TestHelp.workspaceService.createWorkspace("test")
-    val otherWorkspace = TestHelp.workspaceService.createWorkspace("other")
+    val workspace = TestHelp.createWorkspace("test")
+    val otherWorkspace = TestHelp.createWorkspace("other")
 
     val contact = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
     val company = graphService.createNodeType(title = "Company", workspaceId = workspace.id!!)
@@ -193,7 +193,7 @@ class GraphServiceTest {
 
   @Test
   fun `updates node type, edge type, node and edge`() {
-    val workspace = TestHelp.workspaceService.createWorkspace("test")
+    val workspace = TestHelp.createWorkspace("test")
     val nodeType = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
     val edgeType = graphService.createEdgeType(relationshipTitle = "knows", workspaceId = workspace.id!!)
     val alice = graphService.createNode(nodeType.id!!, "Alice", workspaceId = workspace.id!!)
@@ -227,7 +227,7 @@ class GraphServiceTest {
 
   @Test
   fun `soft-deletes edge and excludes it from queries`() {
-    val workspace = TestHelp.workspaceService.createWorkspace("test")
+    val workspace = TestHelp.createWorkspace("test")
     val nodeType = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
     val edgeType = graphService.createEdgeType(relationshipTitle = "knows", workspaceId = workspace.id!!)
     val alice = graphService.createNode(nodeType.id!!, "Alice", workspaceId = workspace.id!!)
@@ -250,7 +250,7 @@ class GraphServiceTest {
 
   @Test
   fun `soft-deletes node with its edges and excludes them from queries`() {
-    val workspace = TestHelp.workspaceService.createWorkspace("test")
+    val workspace = TestHelp.createWorkspace("test")
     val nodeType = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
     val edgeType = graphService.createEdgeType(relationshipTitle = "knows", workspaceId = workspace.id!!)
     val alice = graphService.createNode(nodeType.id!!, "Alice", workspaceId = workspace.id!!)
@@ -271,7 +271,7 @@ class GraphServiceTest {
 
   @Test
   fun `soft-deletes node type and keeps its nodes but prevents new ones`() {
-    val workspace = TestHelp.workspaceService.createWorkspace("test")
+    val workspace = TestHelp.createWorkspace("test")
     val contact = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
     val company = graphService.createNodeType(title = "Company", workspaceId = workspace.id!!)
     val alice = graphService.createNode(contact.id!!, "Alice", workspaceId = workspace.id!!)
@@ -293,14 +293,14 @@ class GraphServiceTest {
       graphService.createNode(contact.id!!, "Bob", workspaceId = workspace.id!!)
     }
     assertThrows(NoSuchNodeTypeException::class.java) {
-      graphService.createNode(company.id!!, "Acme", workspaceId = TestHelp.workspaceService.createWorkspace("other").id!!)
+      graphService.createNode(company.id!!, "Acme", workspaceId = TestHelp.createWorkspace("other").id!!)
     }
     assertEquals(listOf(alice.id), graphService.getNodes(workspace.id!!).items.map { it.id })
   }
 
   @Test
   fun `soft-deletes edge type and keeps its edges but prevents new ones`() {
-    val workspace = TestHelp.workspaceService.createWorkspace("test")
+    val workspace = TestHelp.createWorkspace("test")
     val nodeType = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
     val knows = graphService.createEdgeType(relationshipTitle = "knows", workspaceId = workspace.id!!)
     val likes = graphService.createEdgeType(relationshipTitle = "likes", workspaceId = workspace.id!!)
@@ -329,7 +329,7 @@ class GraphServiceTest {
 
   @Test
   fun `paginates nodes newest first with a cursor`() {
-    val workspace = TestHelp.workspaceService.createWorkspace("test")
+    val workspace = TestHelp.createWorkspace("test")
     val contact = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
     val nodes = (1..5).map { graphService.createNode(contact.id!!, "Node $it", workspaceId = workspace.id!!) }
 
@@ -352,7 +352,7 @@ class GraphServiceTest {
 
   @Test
   fun `paginates nodes with identical creation times by id`() {
-    val workspace = TestHelp.workspaceService.createWorkspace("test")
+    val workspace = TestHelp.createWorkspace("test")
     val contact = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
     val createdAt = OffsetDateTime.parse("2026-01-01T00:00:00Z")
     val repository = GraphRepository(TestHelp.dslContext)

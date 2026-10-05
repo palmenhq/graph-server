@@ -15,6 +15,7 @@ import db.tables.NodeTypeTable
 import db.tables.NoteMentionTable
 import db.tables.NoteTable
 import db.tables.SessionTable
+import db.tables.WorkspaceMemberTable
 import db.tables.WorkspaceTable
 
 
@@ -73,3 +74,8 @@ val SESSION: SessionTable = SessionTable.SESSION
  * The table <code>public_schema.workspace</code>.
  */
 val WORKSPACE: WorkspaceTable = WorkspaceTable.WORKSPACE
+
+/**
+ * The table <code>public_schema.workspace_member</code>.
+ */
+val WORKSPACE_MEMBER: WorkspaceMemberTable = WorkspaceMemberTable.WORKSPACE_MEMBER

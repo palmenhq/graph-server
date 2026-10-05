@@ -20,8 +20,8 @@ class PropertyServiceTest {
 
   @Test
   fun `creates property on node type`() {
-    val workspace = TestHelp.workspaceService.createWorkspace("test")
-    val otherWorkspace = TestHelp.workspaceService.createWorkspace("other")
+    val workspace = TestHelp.createWorkspace("test")
+    val otherWorkspace = TestHelp.createWorkspace("other")
     val person = graphService.createNodeType(title = "Person", workspaceId = workspace.id!!)
     val company = graphService.createNodeType(title = "Company", workspaceId = workspace.id!!)
 
@@ -48,7 +48,7 @@ class PropertyServiceTest {
 
   @Test
   fun `sets, overwrites and clears property value on node`() {
-    val workspace = TestHelp.workspaceService.createWorkspace("test")
+    val workspace = TestHelp.createWorkspace("test")
     val person = graphService.createNodeType(title = "Person", workspaceId = workspace.id!!)
     val alice = graphService.createNode(person.id!!, "Alice", workspaceId = workspace.id!!)
     val bob = graphService.createNode(person.id!!, "Bob", workspaceId = workspace.id!!)
@@ -97,8 +97,8 @@ class PropertyServiceTest {
 
   @Test
   fun `renames property of node type`() {
-    val workspace = TestHelp.workspaceService.createWorkspace("test")
-    val otherWorkspace = TestHelp.workspaceService.createWorkspace("other")
+    val workspace = TestHelp.createWorkspace("test")
+    val otherWorkspace = TestHelp.createWorkspace("other")
     val person = graphService.createNodeType(title = "Person", workspaceId = workspace.id!!)
     val company = graphService.createNodeType(title = "Company", workspaceId = workspace.id!!)
     val alice = graphService.createNode(person.id!!, "Alice", workspaceId = workspace.id!!)
@@ -143,8 +143,8 @@ class PropertyServiceTest {
 
   @Test
   fun `deletes property from node type`() {
-    val workspace = TestHelp.workspaceService.createWorkspace("test")
-    val otherWorkspace = TestHelp.workspaceService.createWorkspace("other")
+    val workspace = TestHelp.createWorkspace("test")
+    val otherWorkspace = TestHelp.createWorkspace("other")
     val person = graphService.createNodeType(title = "Person", workspaceId = workspace.id!!)
     val company = graphService.createNodeType(title = "Company", workspaceId = workspace.id!!)
     val alice = graphService.createNode(person.id!!, "Alice", workspaceId = workspace.id!!)
@@ -181,8 +181,8 @@ class PropertyServiceTest {
 
   @Test
   fun `rejects setting property values that do not apply to the node`() {
-    val workspace = TestHelp.workspaceService.createWorkspace("test")
-    val otherWorkspace = TestHelp.workspaceService.createWorkspace("other")
+    val workspace = TestHelp.createWorkspace("test")
+    val otherWorkspace = TestHelp.createWorkspace("other")
     val person = graphService.createNodeType(title = "Person", workspaceId = workspace.id!!)
     val company = graphService.createNodeType(title = "Company", workspaceId = workspace.id!!)
     val alice = graphService.createNode(person.id!!, "Alice", workspaceId = workspace.id!!)

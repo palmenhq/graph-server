@@ -26,7 +26,7 @@ class NotesServiceTest {
 
   @Test
   fun `creates note with mentions and gets it`() {
-    val workspace = TestHelp.workspaceService.createWorkspace("test")
+    val workspace = TestHelp.createWorkspace("test")
     val nodeType = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
     val alice = graphService.createNode(nodeType.id!!, "Alice", workspaceId = workspace.id!!)
     val bob = graphService.createNode(nodeType.id!!, "Bob", workspaceId = workspace.id!!)
@@ -62,7 +62,7 @@ class NotesServiceTest {
 
   @Test
   fun `creates note without mentions`() {
-    val workspace = TestHelp.workspaceService.createWorkspace("test")
+    val workspace = TestHelp.createWorkspace("test")
 
     val created = notesService.createNote(body = body("Plain"), workspaceId = workspace.id!!, mentions = emptyList())
     val notes = notesService.getAllNotes(workspace.id!!).items
@@ -74,7 +74,7 @@ class NotesServiceTest {
 
   @Test
   fun `deduplicates mentions of the same node`() {
-    val workspace = TestHelp.workspaceService.createWorkspace("test")
+    val workspace = TestHelp.createWorkspace("test")
     val nodeType = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
     val alice = graphService.createNode(nodeType.id!!, "Alice", workspaceId = workspace.id!!)
 
@@ -91,8 +91,8 @@ class NotesServiceTest {
 
   @Test
   fun `gets all notes of a workspace newest first with their own mentions`() {
-    val workspace = TestHelp.workspaceService.createWorkspace("test")
-    val otherWorkspace = TestHelp.workspaceService.createWorkspace("other")
+    val workspace = TestHelp.createWorkspace("test")
+    val otherWorkspace = TestHelp.createWorkspace("other")
     val nodeType = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
     val alice = graphService.createNode(nodeType.id!!, "Alice", workspaceId = workspace.id!!)
     val bob = graphService.createNode(nodeType.id!!, "Bob", workspaceId = workspace.id!!)
@@ -110,7 +110,7 @@ class NotesServiceTest {
 
   @Test
   fun `paginates all notes newest first with a cursor`() {
-    val workspace = TestHelp.workspaceService.createWorkspace("test")
+    val workspace = TestHelp.createWorkspace("test")
     val nodeType = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
     val alice = graphService.createNode(nodeType.id!!, "Alice", workspaceId = workspace.id!!)
     val notes = (1..3).map { notesService.createNote(body("note $it"), workspace.id!!, listOf(MentionRequest(alice.id!!))) }
@@ -132,8 +132,8 @@ class NotesServiceTest {
 
   @Test
   fun `does not get notes from another workspace`() {
-    val workspace = TestHelp.workspaceService.createWorkspace("test")
-    val otherWorkspace = TestHelp.workspaceService.createWorkspace("other")
+    val workspace = TestHelp.createWorkspace("test")
+    val otherWorkspace = TestHelp.createWorkspace("other")
     val created = notesService.createNote(body("secret"), workspace.id!!, emptyList())
 
     assertNull(notesService.getNoteById(created.note.id!!, workspaceId = otherWorkspace.id!!))
@@ -142,7 +142,7 @@ class NotesServiceTest {
 
   @Test
   fun `gets notes mentioning a node newest first with all their mentions`() {
-    val workspace = TestHelp.workspaceService.createWorkspace("test")
+    val workspace = TestHelp.createWorkspace("test")
     val nodeType = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
     val alice = graphService.createNode(nodeType.id!!, "Alice", workspaceId = workspace.id!!)
     val bob = graphService.createNode(nodeType.id!!, "Bob", workspaceId = workspace.id!!)
@@ -168,8 +168,8 @@ class NotesServiceTest {
 
   @Test
   fun `fails to get notes mentioning node from another workspace or unknown node`() {
-    val workspace = TestHelp.workspaceService.createWorkspace("test")
-    val otherWorkspace = TestHelp.workspaceService.createWorkspace("other")
+    val workspace = TestHelp.createWorkspace("test")
+    val otherWorkspace = TestHelp.createWorkspace("other")
     val nodeType = graphService.createNodeType(title = "Contact", workspaceId = otherWorkspace.id!!)
     val foreignNode = graphService.createNode(nodeType.id!!, "Mallory", workspaceId = otherWorkspace.id!!)
     notesService.createNote(body("foreign"), otherWorkspace.id!!, listOf(MentionRequest(foreignNode.id!!)))
@@ -196,8 +196,8 @@ class NotesServiceTest {
 
   @Test
   fun `fails to create note mentioning node from another workspace and saves nothing`() {
-    val workspace = TestHelp.workspaceService.createWorkspace("test")
-    val otherWorkspace = TestHelp.workspaceService.createWorkspace("other")
+    val workspace = TestHelp.createWorkspace("test")
+    val otherWorkspace = TestHelp.createWorkspace("other")
     val nodeType = graphService.createNodeType(title = "Contact", workspaceId = otherWorkspace.id!!)
     val foreignNode = graphService.createNode(nodeType.id!!, "Mallory", workspaceId = otherWorkspace.id!!)
 

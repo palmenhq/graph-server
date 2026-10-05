@@ -12,7 +12,9 @@ import db.keys.NODE_PROPERTY__NODE_PROPERTY_WORKSPACE_ID_FKEY
 import db.keys.NODE_TYPE__NODE_TYPE_WORKSPACE_ID_FKEY
 import db.keys.NODE__NODE_WORKSPACE_ID_FKEY
 import db.keys.NOTE__NOTE_WORKSPACE_ID_FKEY
+import db.keys.WORKSPACE_MEMBER__WORKSPACE_MEMBER_WORKSPACE_ID_FKEY
 import db.keys.WORKSPACE_PKEY
+import db.tables.AppUserTable.AppUserPath
 import db.tables.EdgeTable.EdgePath
 import db.tables.EdgeTypeTable.EdgeTypePath
 import db.tables.NodePropertyTable.NodePropertyPath
@@ -20,6 +22,7 @@ import db.tables.NodePropertyValueTable.NodePropertyValuePath
 import db.tables.NodeTable.NodePath
 import db.tables.NodeTypeTable.NodeTypePath
 import db.tables.NoteTable.NotePath
+import db.tables.WorkspaceMemberTable.WorkspaceMemberPath
 import db.tables.records.WorkspaceRecord
 
 import java.time.OffsetDateTime
@@ -246,6 +249,29 @@ open class WorkspaceTable(
 
     val note: NotePath
         get(): NotePath = note()
+
+    private lateinit var _workspaceMember: WorkspaceMemberPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public_schema.workspace_member</code> table
+     */
+    fun workspaceMember(): WorkspaceMemberPath {
+        if (!this::_workspaceMember.isInitialized)
+            _workspaceMember = WorkspaceMemberPath(this, null, WORKSPACE_MEMBER__WORKSPACE_MEMBER_WORKSPACE_ID_FKEY.inverseKey)
+
+        return _workspaceMember;
+    }
+
+    val workspaceMember: WorkspaceMemberPath
+        get(): WorkspaceMemberPath = workspaceMember()
+
+    /**
+     * Get the implicit many-to-many join path to the
+     * <code>public_schema.app_user</code> table
+     */
+    val appUser: AppUserPath
+        get(): AppUserPath = workspaceMember().appUser()
     override fun `as`(alias: String): WorkspaceTable = WorkspaceTable(DSL.name(alias), this)
     override fun `as`(alias: Name): WorkspaceTable = WorkspaceTable(alias, this)
     override fun `as`(alias: Table<*>): WorkspaceTable = WorkspaceTable(alias.qualifiedName, this)

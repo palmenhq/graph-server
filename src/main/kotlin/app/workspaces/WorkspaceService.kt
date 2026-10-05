@@ -7,19 +7,35 @@ import java.time.OffsetDateTime
 class WorkspaceService(
   private val workspaceRepository: WorkspaceRepository,
 ) {
-  fun createWorkspace(name: String): Workspace {
+  fun createWorkspace(
+    name: String,
+    ownerId: ResourceId,
+  ): Workspace {
     val workspace =
       Workspace().apply {
         this.id = WorkspaceRepository.newResourceId()
         this.name = name
         this.createdAt = OffsetDateTime.now()
       }
-    workspaceRepository.insert(workspace)
+    workspaceRepository.insert(workspace, memberId = ownerId)
 
     return workspace
   }
 
+  /**
+   * Not access controlled. Use [getByIdForUser] when acting on behalf of a user.
+   */
   fun getById(id: ResourceId): Workspace? = workspaceRepository.findById(id)
 
-  fun getAll(): List<Workspace> = workspaceRepository.findAll()
+  fun getByIdForUser(
+    id: ResourceId,
+    userId: ResourceId,
+  ): Workspace? = workspaceRepository.findByIdForMember(id = id, userId = userId)
+
+  fun getAllForUser(userId: ResourceId): List<Workspace> = workspaceRepository.findAllForMember(userId)
+
+  fun hasAccess(
+    workspaceId: ResourceId,
+    userId: ResourceId,
+  ): Boolean = workspaceRepository.isMember(workspaceId = workspaceId, userId = userId)
 }

@@ -7,6 +7,9 @@ package db.tables
 import db.PublicSchema
 import db.keys.APP_USER_PKEY
 import db.keys.APP_USER_USERNAME_KEY
+import db.keys.WORKSPACE_MEMBER__WORKSPACE_MEMBER_USER_ID_FKEY
+import db.tables.WorkspaceMemberTable.WorkspaceMemberPath
+import db.tables.WorkspaceTable.WorkspacePath
 import db.tables.records.AppUserRecord
 
 import java.time.OffsetDateTime
@@ -19,6 +22,7 @@ import org.jooq.Field
 import org.jooq.ForeignKey
 import org.jooq.InverseForeignKey
 import org.jooq.Name
+import org.jooq.Path
 import org.jooq.PlainSQL
 import org.jooq.QueryPart
 import org.jooq.Record
@@ -31,6 +35,7 @@ import org.jooq.TableField
 import org.jooq.TableOptions
 import org.jooq.UniqueKey
 import org.jooq.impl.DSL
+import org.jooq.impl.Internal
 import org.jooq.impl.SQLDataType
 import org.jooq.impl.TableImpl
 
@@ -110,9 +115,45 @@ open class AppUserTable(
      * Create a <code>public_schema.app_user</code> table reference
      */
     constructor(): this(DSL.name("app_user"), null)
+
+    constructor(path: Table<out Record>, childPath: ForeignKey<out Record, AppUserRecord>?, parentPath: InverseForeignKey<out Record, AppUserRecord>?): this(Internal.createPathAlias(path, childPath, parentPath), path, childPath, parentPath, APP_USER, null, null)
+
+    /**
+     * A subtype implementing {@link Path} for simplified path-based joins.
+     */
+    open class AppUserPath : AppUserTable, Path<AppUserRecord> {
+        constructor(path: Table<out Record>, childPath: ForeignKey<out Record, AppUserRecord>?, parentPath: InverseForeignKey<out Record, AppUserRecord>?): super(path, childPath, parentPath)
+        private constructor(alias: Name, aliased: Table<AppUserRecord>): super(alias, aliased)
+        override fun `as`(alias: String): AppUserPath = AppUserPath(DSL.name(alias), this)
+        override fun `as`(alias: Name): AppUserPath = AppUserPath(alias, this)
+        override fun `as`(alias: Table<*>): AppUserPath = AppUserPath(alias.qualifiedName, this)
+    }
     override fun getSchema(): Schema? = if (aliased()) null else PublicSchema.PUBLIC_SCHEMA
     override fun getPrimaryKey(): UniqueKey<AppUserRecord> = APP_USER_PKEY
     override fun getUniqueKeys(): List<UniqueKey<AppUserRecord>> = listOf(APP_USER_USERNAME_KEY)
+
+    private lateinit var _workspaceMember: WorkspaceMemberPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public_schema.workspace_member</code> table
+     */
+    fun workspaceMember(): WorkspaceMemberPath {
+        if (!this::_workspaceMember.isInitialized)
+            _workspaceMember = WorkspaceMemberPath(this, null, WORKSPACE_MEMBER__WORKSPACE_MEMBER_USER_ID_FKEY.inverseKey)
+
+        return _workspaceMember;
+    }
+
+    val workspaceMember: WorkspaceMemberPath
+        get(): WorkspaceMemberPath = workspaceMember()
+
+    /**
+     * Get the implicit many-to-many join path to the
+     * <code>public_schema.workspace</code> table
+     */
+    val workspace: WorkspacePath
+        get(): WorkspacePath = workspaceMember().workspace()
     override fun `as`(alias: String): AppUserTable = AppUserTable(DSL.name(alias), this)
     override fun `as`(alias: Name): AppUserTable = AppUserTable(alias, this)
     override fun `as`(alias: Table<*>): AppUserTable = AppUserTable(alias.qualifiedName, this)

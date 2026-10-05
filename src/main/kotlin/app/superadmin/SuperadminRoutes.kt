@@ -35,7 +35,6 @@ val RequireSuperadminToken =
 
     if (expected == null) {
       logger.warn { "Superadmin token is not configured, rejecting all requests" }
-      return@createRouteScopedPlugin
     }
 
     onCall { call ->

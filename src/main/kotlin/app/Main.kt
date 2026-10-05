@@ -20,6 +20,7 @@ import app.notes.NotesService
 import app.notes.noteRoutes
 import app.superadmin.RequireSuperadminToken
 import app.superadmin.superadminRoutes
+import app.workspaces.RequireWorkspaceAccess
 import app.workspaces.WorkspaceRepository
 import app.workspaces.WorkspaceService
 import app.workspaces.workspaceRoutes
@@ -120,8 +121,11 @@ fun Application.module(
       route("/api") {
         install(RequireSession)
         workspaceRoutes(workspaceService)
-        graphRoutes(graphService, propertyService)
-        noteRoutes(notesService)
+        route("workspaces/{workspaceId}") {
+          install(RequireWorkspaceAccess) { this.workspaceService = workspaceService }
+          graphRoutes(graphService, propertyService)
+          noteRoutes(notesService)
+        }
       }
       get(path = "/openapi.json") {
         // Superadmin routes are internal and must not show up in the public API documentation
