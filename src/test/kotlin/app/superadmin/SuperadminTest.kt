@@ -23,9 +23,8 @@ class SuperadminTest {
     username: String,
     password: String,
     token: String? = TestHelp.SUPERADMIN_SECRET,
-    baseUrl: String = TestHelp.SUPERADMIN_URL,
   ): HttpResponse =
-    client.post("$baseUrl/api/superadmin/users/createUser") {
+    client.post("/api/superadmin/users/createUser") {
       contentType(ContentType.Application.Json)
       if (token != null) header(SUPERADMIN_TOKEN_HEADER, token)
       setBody("""{"username":"$username","password":"$password"}""")
@@ -90,14 +89,13 @@ class SuperadminTest {
     }
 
   @Test
-  fun `superadmin api is only served on the superadmin port`() =
+  fun `superadmin api does not require a user session and is not documented`() =
     TestHelp.testServer {
-      // Not reachable on the public port
-      assertEquals(HttpStatusCode.NotFound, createUser(newUsername(), "secret", baseUrl = "").status)
+      // Served alongside the public API, with the superadmin token as the only credential
+      assertEquals(HttpStatusCode.Created, createUser(newUsername(), "secret").status)
 
-      // Public API is not reachable on the superadmin port
-      assertEquals(HttpStatusCode.NotFound, client.get("${TestHelp.SUPERADMIN_URL}/api/workspaces/getAll").status)
-      assertEquals(HttpStatusCode.NotFound, client.get("${TestHelp.SUPERADMIN_URL}/openapi.json").status)
+      // The public API still requires a session
+      assertEquals(HttpStatusCode.Unauthorized, client.get("/api/workspaces/getAll").status)
 
       // Superadmin routes are not part of the public documentation
       val openApi = client.get("/openapi.json")

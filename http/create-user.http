@@ -1,4 +1,4 @@
-POST http://localhost:8081/api/superadmin/users/createUser
+POST http://localhost:8080/api/superadmin/users/createUser
 content-type: application/json
 accept: application/json
 x-superadmin-token: secret

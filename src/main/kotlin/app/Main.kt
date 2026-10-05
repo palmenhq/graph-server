@@ -39,7 +39,6 @@ import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
-import io.ktor.server.routing.localPort
 import io.ktor.server.routing.openapi.hide
 import io.ktor.server.routing.openapi.plus
 import io.ktor.server.routing.route
@@ -54,7 +53,6 @@ import org.jooq.impl.DSL
 import org.postgresql.Driver
 
 const val API_PORT = 8080
-const val SUPERADMIN_PORT = 8081
 
 fun Application.main() {
   val dataSource =
@@ -72,14 +70,11 @@ fun Application.main() {
 }
 
 /**
- * The public API is served on [apiPort] only, the superadmin API on [superadminPort] only.
  * When [superadminTokenSecret] is null, all superadmin requests are rejected.
  */
 fun Application.module(
   dslContext: DSLContext,
   superadminTokenSecret: String?,
-  apiPort: Int = API_PORT,
-  superadminPort: Int = SUPERADMIN_PORT,
 ) {
   val sessionStorage = PostgresSessionStorage(dslContext)
   val authService = AuthService(UserRepository(dslContext), sessionStorage)
@@ -108,35 +103,33 @@ fun Application.module(
   }
 
   routing {
+    // Superadmin routes are protected by their token only, so RequireSession must not be installed on /api itself
     val superadminRoot =
-      localPort(superadminPort) {
-        route("/api/superadmin") {
-          install(RequireSuperadminToken) { secret = superadminTokenSecret }
-          superadminRoutes(authService)
-        }
+      route("/api/superadmin") {
+        install(RequireSuperadminToken) { secret = superadminTokenSecret }
+        superadminRoutes(authService)
       }
 
-    localPort(apiPort) {
-      authRoutes(authService)
-      route("/api") {
-        install(RequireSession)
-        workspaceRoutes(workspaceService)
-        route("workspaces/{workspaceId}") {
-          install(RequireWorkspaceAccess) { this.workspaceService = workspaceService }
-          graphRoutes(graphService, propertyService)
-          noteRoutes(notesService)
-        }
+    authRoutes(authService)
+    route("/api") {
+      // Installed on the existing /api/workspaces node, which workspaceRoutes and the {workspaceId} routes extend
+      route("workspaces") { install(RequireSession) }
+      workspaceRoutes(workspaceService)
+      route("workspaces/{workspaceId}") {
+        install(RequireWorkspaceAccess) { this.workspaceService = workspaceService }
+        graphRoutes(graphService, propertyService)
+        noteRoutes(notesService)
       }
-      get(path = "/openapi.json") {
-        // Superadmin routes are internal and must not show up in the public API documentation
-        val publicRoutes =
-          routingRoot.descendants().filterNot { route ->
-            generateSequence<Route>(route) { it.parent }.any { it == superadminRoot }
-          }
-        val doc = OpenApiDoc(info = OpenApiInfo(title = "Graph Crm", "0")) + publicRoutes
-        call.respondText(Json.encodeToString(doc), contentType = ContentType.Application.Json)
-      }.hide()
     }
+    get(path = "/openapi.json") {
+      // Superadmin routes are internal and must not show up in the public API documentation
+      val publicRoutes =
+        routingRoot.descendants().filterNot { route ->
+          generateSequence<Route>(route) { it.parent }.any { it == superadminRoot }
+        }
+      val doc = OpenApiDoc(info = OpenApiInfo(title = "Graph Crm", "0")) + publicRoutes
+      call.respondText(Json.encodeToString(doc), contentType = ContentType.Application.Json)
+    }.hide()
   }
 }
 
@@ -147,10 +140,6 @@ fun main() {
       connector {
         host = "0.0.0.0"
         port = API_PORT
-      }
-      connector {
-        host = "0.0.0.0"
-        port = SUPERADMIN_PORT
       }
     },
     module = Application::main,

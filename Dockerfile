@@ -8,8 +8,7 @@ COPY --chown=graphcrm:graphcrm build/libs/graphcrm.jar /app/graphcrm.jar
 
 USER graphcrm
 
-# API and superadmin ports
-EXPOSE 8080 8081
+EXPOSE 8080
 
 ENTRYPOINT ["java", "-jar", "/app/graphcrm.jar"]
 

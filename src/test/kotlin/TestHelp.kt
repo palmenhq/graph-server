@@ -1,4 +1,3 @@
-import app.SUPERADMIN_PORT
 import app.auth.AuthService
 import app.auth.PostgresSessionStorage
 import app.auth.UserRepository
@@ -8,7 +7,6 @@ import app.workspaces.WorkspaceRepository
 import app.workspaces.WorkspaceService
 import db.tables.pojos.AppUser
 import db.tables.pojos.Workspace
-import io.ktor.server.engine.connector
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import org.jooq.DSLContext
@@ -45,28 +43,14 @@ object TestHelp {
 
   const val SUPERADMIN_SECRET = "test-superadmin-secret"
 
-  // The test client sends relative URLs to localhost:80, so the public API is bound there in tests
-  const val TEST_API_PORT = 80
-  const val SUPERADMIN_URL = "http://localhost:$SUPERADMIN_PORT"
-
   /**
-   * Runs the full application with both the public and the superadmin connector.
+   * Runs the full application
    */
   fun testServer(
     superadminTokenSecret: String? = SUPERADMIN_SECRET,
     block: suspend ApplicationTestBuilder.() -> Unit,
   ) = testApplication {
-    engine {
-      connector {
-        host = "localhost"
-        port = TEST_API_PORT
-      }
-      connector {
-        host = "localhost"
-        port = SUPERADMIN_PORT
-      }
-    }
-    application { module(dslContext, superadminTokenSecret = superadminTokenSecret, apiPort = TEST_API_PORT) }
+    application { module(dslContext, superadminTokenSecret = superadminTokenSecret) }
     block()
   }
 }
