@@ -21,6 +21,7 @@ import app.graph.dtos.toRecord
 import app.utils.http.ClientError
 import app.utils.http.ClientException
 import app.utils.http.Cursor
+import app.utils.http.DEFAULT_PAGE_SIZE
 import app.utils.http.ListResponse
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
@@ -261,6 +262,7 @@ fun Route.graphRoutes(
       get("getAll") {
         val nodeTypeId = call.queryParameters["nodeTypeId"]
         val searchQuery = call.queryParameters["search"]
+        val pageSize = call.queryParameters["pageSize"]?.toIntOrNull() ?: DEFAULT_PAGE_SIZE
         val page =
           try {
             graphService.getNodes(
@@ -268,6 +270,7 @@ fun Route.graphRoutes(
               nodeTypeId = nodeTypeId,
               searchQuery = searchQuery,
               cursor = call.queryParameters["cursor"]?.let { Cursor.decode(it) },
+              pageSize = pageSize,
             )
           } catch (e: ClientException) {
             return@get call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
