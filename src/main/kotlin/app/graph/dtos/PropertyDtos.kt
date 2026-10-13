@@ -51,6 +51,9 @@ enum class PropertyValueTypeDto {
   @SerialName("text")
   TEXT,
 
+  @SerialName("textarea")
+  TEXTAREA,
+
   @SerialName("instagram")
   INSTAGRAM,
 
@@ -67,6 +70,7 @@ enum class PropertyValueTypeDto {
 fun PropertyValueType.toDto(): PropertyValueTypeDto =
   when (this) {
     PropertyValueType.text -> PropertyValueTypeDto.TEXT
+    PropertyValueType.textarea -> PropertyValueTypeDto.TEXTAREA
     PropertyValueType.instagram -> PropertyValueTypeDto.INSTAGRAM
     PropertyValueType.tiktok -> PropertyValueTypeDto.TIKTOK
     PropertyValueType.phone -> PropertyValueTypeDto.PHONE
@@ -76,6 +80,7 @@ fun PropertyValueType.toDto(): PropertyValueTypeDto =
 fun PropertyValueTypeDto.toRecord(): PropertyValueType =
   when (this) {
     PropertyValueTypeDto.TEXT -> PropertyValueType.text
+    PropertyValueTypeDto.TEXTAREA -> PropertyValueType.textarea
     PropertyValueTypeDto.INSTAGRAM -> PropertyValueType.instagram
     PropertyValueTypeDto.TIKTOK -> PropertyValueType.tiktok
     PropertyValueTypeDto.PHONE -> PropertyValueType.phone
