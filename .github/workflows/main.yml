@@ -18,11 +18,11 @@ jobs:
         ports:
           - '54322:5432'
         env:
-          POSTGRES_USER: graphcrm_test
-          POSTGRES_PASSWORD: graphcrm_test
-          POSTGRES_DB: graphcrm_test
+          POSTGRES_USER: graph_test
+          POSTGRES_PASSWORD: graph_test
+          POSTGRES_DB: graph_test
         options: >-
-          --health-cmd "pg_isready -U graphcrm_test -d graphcrm_test"
+          --health-cmd "pg_isready -U graph_test -d graph_test"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
@@ -97,7 +97,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          repository: palmenhq/graphcrm-infra
+          repository: palmenhq/graph-infra
           ref: main
           token: ${{ secrets.INFRA_REPO_TOKEN_SECRET }}
           path: infra

@@ -1,16 +1,16 @@
 # Runner: expects the jar to be built beforehand with `./gradlew assemble`
 FROM eclipse-temurin:25-jre AS runner
 
-RUN groupadd --system graphcrm && useradd --system --gid graphcrm graphcrm
+RUN groupadd --system graph && useradd --system --gid graph graph
 
 WORKDIR /app
-COPY --chown=graphcrm:graphcrm build/libs/graphcrm.jar /app/graphcrm.jar
+COPY --chown=graph:graph build/libs/graph.jar /app/graph.jar
 
-USER graphcrm
+USER graph
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "/app/graphcrm.jar"]
+ENTRYPOINT ["java", "-jar", "/app/graph.jar"]
 
 
 # Migrator: runs liquibase against the changelog in src/main/resources/db

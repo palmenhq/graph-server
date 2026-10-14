@@ -4,15 +4,15 @@ services:
     ports:
       - '54321:5432'
     environment:
-      POSTGRES_USER: graphcrm
-      POSTGRES_PASSWORD: graphcrm
-      POSTGRES_DB: graphcrm
+      POSTGRES_USER: graph
+      POSTGRES_PASSWORD: graph
+      POSTGRES_DB: graph
 
   postgres-test:
     image: 'postgres:17.6-alpine'
     ports:
       - '54322:5432'
     environment:
-      POSTGRES_USER: graphcrm_test
-      POSTGRES_PASSWORD: graphcrm_test
-      POSTGRES_DB: graphcrm_test
+      POSTGRES_USER: graph_test
+      POSTGRES_PASSWORD: graph_test
+      POSTGRES_DB: graph_test

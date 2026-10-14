@@ -6,9 +6,9 @@ clean:
 	./gradlew clean
 
 run: build
-	java -jar build/libs/graphcrm.jar dev
+	java -jar build/libs/graph.jar dev
 
-build: build/libs/graphcrm.jar
+build: build/libs/graph.jar
 
 test: db-migrate-test
 	./gradlew check
@@ -17,15 +17,15 @@ db-migrate:
 	./gradlew update --info
 
 db-migrate-test:
-	DB_URL='jdbc:postgresql://127.0.0.1:54322/graphcrm_test' \
-	DB_USER='graphcrm_test' \
-	DB_PASSWORD='graphcrm_test' \
+	DB_URL='jdbc:postgresql://127.0.0.1:54322/graph_test' \
+	DB_USER='graph_test' \
+	DB_PASSWORD='graph_test' \
 	./gradlew update
 
 db-rollback-one-test:
-	DB_URL='jdbc:postgresql://127.0.0.1:54322/graphcrm_test' \
-	DB_USER='graphcrm_test' \
-	DB_PASSWORD='graphcrm_test' \
+	DB_URL='jdbc:postgresql://127.0.0.1:54322/graph_test' \
+	DB_USER='graph_test' \
+	DB_PASSWORD='graph_test' \
 	./gradlew rollbackCount -Dliquibase.command.count=1
 
 db-codegen: db-migrate
@@ -37,5 +37,5 @@ db-rollback-one:
 db-dangerously-clear-checksums:
 	./gradlew clearChecksums
 
-build/libs/graphcrm.jar: build.gradle.kts gradle/libs.versions.toml $(MAIN_SOURCES)
+build/libs/graph.jar: build.gradle.kts gradle/libs.versions.toml $(MAIN_SOURCES)
 	./gradlew assemble

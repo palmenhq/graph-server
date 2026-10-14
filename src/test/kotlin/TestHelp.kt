@@ -19,9 +19,9 @@ object TestHelp {
   val dbConnection: Connection
     get() =
       DriverManager.getConnection(
-        System.getenv("TEST_DB_URL") ?: "jdbc:postgresql://localhost:54322/graphcrm_test",
-        System.getenv("TEST_DB_USER") ?: "graphcrm_test",
-        System.getenv("TEST_DB_PASSWORD") ?: "graphcrm_test",
+        System.getenv("TEST_DB_URL") ?: "jdbc:postgresql://localhost:54322/graph_test",
+        System.getenv("TEST_DB_USER") ?: "graph_test",
+        System.getenv("TEST_DB_PASSWORD") ?: "graph_test",
       )
 
   val dslContext: DSLContext

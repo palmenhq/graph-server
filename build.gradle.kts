@@ -88,7 +88,7 @@ sourceSets {
 application.mainClass = mainClassName
 
 tasks.jar {
-  archiveBaseName = "graphcrm"
+  archiveBaseName = "graph"
 
   manifest {
     attributes += "Main-Class" to mainClassName
@@ -116,9 +116,9 @@ ktor {
   }
 }
 
-val dbUrl = System.getenv("DB_URL") ?: "jdbc:postgresql://127.0.0.1:54321/graphcrm"
-val dbUsername = System.getenv("DB_USER") ?: "graphcrm"
-val dbPassword = System.getenv("DB_PASSWORD") ?: "graphcrm"
+val dbUrl = System.getenv("DB_URL") ?: "jdbc:postgresql://127.0.0.1:54321/graph"
+val dbUsername = System.getenv("DB_USER") ?: "graph"
+val dbPassword = System.getenv("DB_PASSWORD") ?: "graph"
 
 jooq {
   configuration {
