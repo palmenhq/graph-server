@@ -3,11 +3,11 @@ package app.workspaces
 import app.auth.userSession
 import app.utils.http.ClientError
 import app.utils.http.ListResponse
+import app.utils.http.userId
 import app.workspaces.dtos.CreateWorkspaceRequest
 import app.workspaces.dtos.toDto
 import app.workspaces.validation.NoSuchWorkspaceException
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.createRouteScopedPlugin
 import io.ktor.server.application.isHandled
 import io.ktor.server.request.receive
@@ -16,9 +16,6 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
-
-private val ApplicationCall.userId: String
-  get() = userSession!!.userId
 
 class WorkspaceAccessConfig {
   lateinit var workspaceService: WorkspaceService

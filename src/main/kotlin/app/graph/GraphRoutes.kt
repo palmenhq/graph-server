@@ -23,17 +23,14 @@ import app.utils.http.ClientException
 import app.utils.http.Cursor
 import app.utils.http.DEFAULT_PAGE_SIZE
 import app.utils.http.ListResponse
+import app.utils.http.workspaceId
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
-
-private val ApplicationCall.workspaceId: String
-  get() = parameters["workspaceId"]!!
 
 private fun Route.deleteRoute(delete: (id: String, workspaceId: String) -> Unit) {
   post("delete") {
