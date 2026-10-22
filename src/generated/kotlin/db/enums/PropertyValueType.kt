@@ -21,7 +21,8 @@ enum class PropertyValueType(@get:JvmName("literal") public val literal: String)
     tiktok("tiktok"),
     phone("phone"),
     email("email"),
-    textarea("textarea");
+    textarea("textarea"),
+    link("link");
     override fun getCatalog(): Catalog? = schema.catalog
     override fun getSchema(): Schema = PublicSchema.PUBLIC_SCHEMA
     override fun getName(): String = "property_value_type"
