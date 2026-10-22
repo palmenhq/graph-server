@@ -6,6 +6,7 @@ import app.graph.validation.NoSuchNodeException
 import app.graph.validation.NoSuchNodeTypeException
 import app.graph.validation.NoSuchPropertyException
 import app.graph.validation.PropertyNotOnNodeTypeException
+import app.graph.validation.PropertyValueValidator
 import app.utils.ResourceId
 import app.utils.toResourceId
 import db.enums.PropertyValueType
@@ -107,7 +108,7 @@ class PropertyService(
 
   /**
    * Sets (or clears, when [value] is null) the value of a property on a node.
-   * The property must be defined on the node's type.
+   * The property must be defined on the node's type and the value must be valid for the property's value type.
    */
   fun setPropertyValue(
     nodeId: ResourceId,
@@ -120,6 +121,7 @@ class PropertyService(
       propertyRepository.findPropertyById(propertyId = propertyId, workspaceId = workspaceId)
         ?: throw NoSuchPropertyException(propertyId)
     if (property.nodeTypeId != node.type) throw PropertyNotOnNodeTypeException(propertyId, node.type!!)
+    PropertyValueValidator.validate(property.valueType!!, value)
 
     val propertyValue =
       NodePropertyValue(

@@ -33,6 +33,10 @@ class UnsupportedPropertyValueTypeException(
   valueType: String,
 ) : ClientException("unsupported_property_value_type", "Property value type $valueType is not supported")
 
+class InvalidPropertyValueException(
+  valueType: String,
+) : ClientException("invalid_property_value", "Value is not a valid $valueType")
+
 class PropertyNotOnNodeTypeException(
   propertyId: ResourceId,
   nodeTypeId: ResourceId,

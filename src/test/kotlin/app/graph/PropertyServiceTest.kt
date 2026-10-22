@@ -3,6 +3,7 @@ package app.graph
 import TestHelp
 import app.graph.validation.DuplicatePropertyException
 import app.graph.validation.InvalidPropertyNameException
+import app.graph.validation.InvalidPropertyValueException
 import app.graph.validation.NoSuchNodeException
 import app.graph.validation.NoSuchNodeTypeException
 import app.graph.validation.NoSuchPropertyException
@@ -202,6 +203,77 @@ class PropertyServiceTest {
     graphService.deleteNode(alice.id!!, workspace.id!!)
     assertThrows(NoSuchNodeException::class.java) {
       propertyService.setPropertyValue(alice.id!!, instagram.id!!, "x", workspace.id!!)
+    }
+  }
+
+  @Test
+  fun `validates property values by value type`() {
+    val workspace = TestHelp.createWorkspace("test")
+    val person = graphService.createNodeType(title = "Person", workspaceId = workspace.id!!)
+    val alice = graphService.createNode(person.id!!, "Alice", workspaceId = workspace.id!!)
+
+    val cases =
+      mapOf(
+        PropertyValueType.instagram to
+          (
+            listOf(
+              "instagram.com/alice",
+              "https://instagram.com/alice",
+              "www.instagram.com/alice",
+              "https://www.instagram.com/alice",
+              "alice",
+              "@alice.b_1",
+            ) to
+            listOf(
+              "http://instagram.com/alice",
+              "https://instagram.com/",
+              "https://www.instagram.com/",
+              "http://www.instagram.com/alice",
+              "https://evil.com/instagram.com/",
+              "@",
+              "al ice",
+              "@alice!",
+              "",
+            )
+          ),
+        PropertyValueType.tiktok to
+          (
+            listOf(
+              "tiktok.com/@alice",
+              "https://tiktok.com/@alice",
+              "www.tiktok.com/@alice",
+              "https://www.tiktok.com/@alice",
+              "@alice",
+              "alice",
+            ) to
+              listOf("http://tiktok.com/@alice", "tiktok.com/", "www.tiktok.com/", "https://instagram.com/alice", "@@alice", "")
+          ),
+        PropertyValueType.link to
+          (listOf("https://example.com", "http://example.com/path?q=1") to
+            listOf("example.com", "ftp://example.com", "https://", "https://exa mple.com")),
+        PropertyValueType.phone to
+          (listOf("+46 70 123 45 67", "070-123 45 67", "(555) 123-4567") to
+            listOf("abc", "123", "+46 70 abc", "")),
+        PropertyValueType.email to
+          (listOf("alice@example.com", "alice.b+tag@sub.example.org") to
+            listOf("alice", "alice@", "alice@example", "a lice@example.com", "")),
+        PropertyValueType.text to (listOf("anything", "") to emptyList()),
+      )
+
+    cases.forEach { (valueType, values) ->
+      val property = propertyService.createProperty(person.id!!, valueType.literal, valueType, workspace.id!!)
+      values.first.forEach { valid ->
+        assertEquals(valid, propertyService.setPropertyValue(alice.id!!, property.id!!, valid, workspace.id!!).second.value)
+      }
+      values.second.forEach { invalid ->
+        assertThrows(
+          InvalidPropertyValueException::class.java,
+          { propertyService.setPropertyValue(alice.id!!, property.id!!, invalid, workspace.id!!) },
+          "$valueType: $invalid",
+        )
+      }
+      // Clearing is always allowed
+      propertyService.setPropertyValue(alice.id!!, property.id!!, null, workspace.id!!)
     }
   }
 }

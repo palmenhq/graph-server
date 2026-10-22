@@ -9,7 +9,7 @@
       <env name="SUPERADMIN_TOKEN_SECRET" value="secret" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="app.MainKt" />
-    <module name="graph-crm.main" />
+    <module name="graph-server.main" />
     <shortenClasspath name="NONE" />
     <method v="2">
       <option name="Make" enabled="true" />
