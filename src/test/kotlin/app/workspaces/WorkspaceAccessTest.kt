@@ -100,7 +100,7 @@ class WorkspaceAccessTest {
       assertEquals(HttpStatusCode.UnprocessableEntity, forbiddenCreate.status)
       assertTrue(forbiddenCreate.bodyAsText().contains("no_such_workspace"))
 
-      for (path in listOf("graph/nodeTypes/getAll", "graph/nodes/getAll", "notes/getAll")) {
+      for (path in listOf("graph/nodeTypes/getAll", "graph/nodes/getAll")) {
         val own = client.get("/api/workspaces/$workspace/$path") { header(SESSION_HEADER, alice) }
         assertEquals(HttpStatusCode.OK, own.status, path)
 
@@ -110,11 +110,11 @@ class WorkspaceAccessTest {
       }
 
       // Indistinguishable from a workspace that doesn't exist
-      val missing = client.get("/api/workspaces/wskp_missing/notes/getAll") { header(SESSION_HEADER, alice) }
+      val missing = client.get("/api/workspaces/wskp_missing/graph/nodeTypes/getAll") { header(SESSION_HEADER, alice) }
       assertEquals(HttpStatusCode.UnprocessableEntity, missing.status)
 
       // Still requires a session first
-      val anonymous = client.get("/api/workspaces/$workspace/notes/getAll")
+      val anonymous = client.get("/api/workspaces/$workspace/graph/nodeTypes/getAll")
       assertEquals(HttpStatusCode.Unauthorized, anonymous.status)
     }
 }

@@ -18,7 +18,8 @@ data class Note(
     var id: String? = null,
     var body: JSONB? = null,
     var createdAt: OffsetDateTime? = null,
-    var workspaceId: String? = null
+    var workspaceId: String? = null,
+    var nodeId: String? = null
 ): Serializable {
 
 
@@ -54,6 +55,12 @@ data class Note(
         }
         else if (this.workspaceId != o.workspaceId)
             return false
+        if (this.nodeId == null) {
+            if (o.nodeId != null)
+                return false
+        }
+        else if (this.nodeId != o.nodeId)
+            return false
         return true
     }
 
@@ -64,6 +71,7 @@ data class Note(
         result = prime * result + (if (this.body == null) 0 else this.body.hashCode())
         result = prime * result + (if (this.createdAt == null) 0 else this.createdAt.hashCode())
         result = prime * result + (if (this.workspaceId == null) 0 else this.workspaceId.hashCode())
+        result = prime * result + (if (this.nodeId == null) 0 else this.nodeId.hashCode())
         return result
     }
 
@@ -74,6 +82,7 @@ data class Note(
         sb.append(", ").append(body)
         sb.append(", ").append(createdAt)
         sb.append(", ").append(workspaceId)
+        sb.append(", ").append(nodeId)
 
         sb.append(")")
         return sb.toString()

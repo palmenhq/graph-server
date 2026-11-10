@@ -7,6 +7,7 @@ import kotlinx.serialization.json.JsonElement
 @Serializable
 data class CreateNoteRequest(
   val body: JsonElement, // TODO type defs of tiptap editor's JSONContent?
+  val nodeId: ResourceId,
   val mentions: List<MentionRequest> = emptyList(),
 )
 

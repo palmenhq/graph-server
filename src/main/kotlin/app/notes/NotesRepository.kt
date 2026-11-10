@@ -13,6 +13,7 @@ import db.tables.references.NODE
 import db.tables.references.NOTE
 import db.tables.references.NOTE_MENTION
 import org.jooq.DSLContext
+import org.jooq.Record
 import org.jooq.impl.DSL
 
 class NotesRepository(
@@ -36,44 +37,53 @@ class NotesRepository(
   ): NoteDbo? {
     val note =
       dsl
-        .selectFrom(NOTE)
+        .select(*NOTE.fields(), *NODE.fields())
+        .from(NOTE)
+        .leftJoin(NODE)
+        .on(NOTE.NODE_ID.eq(NODE.ID))
         .where(NOTE.ID.eq(noteId))
         .and(NOTE.WORKSPACE_ID.eq(workspaceId))
-        .fetchOneInto(Note::class.java) ?: return null
+        .fetchOne(::noteAndNode) ?: return null
 
     return withMentions(listOf(note)).single()
   }
 
   fun findNotes(
     workspaceId: ResourceId,
-    mentionedNodeId: ResourceId? = null,
+    nodeId: ResourceId,
     cursor: Cursor? = null,
     limit: Int? = null,
   ): List<NoteDbo> {
     val notes =
       dsl
-        .selectFrom(NOTE)
+        .select(*NOTE.fields(), *NODE.fields())
+        .from(NOTE)
+        .leftJoin(NODE)
+        .on(NOTE.NODE_ID.eq(NODE.ID))
         .where(NOTE.WORKSPACE_ID.eq(workspaceId))
         .and(
-          if (mentionedNodeId != null) {
-            NOTE.ID.`in`(
+          NOTE.ID
+            .`in`(
               DSL
                 .select(NOTE_MENTION.NOTE)
                 .from(NOTE_MENTION)
-                .where(NOTE_MENTION.NODE.eq(mentionedNodeId)),
-            )
-          } else {
-            DSL.noCondition()
-          },
+                .where(NOTE_MENTION.NODE.eq(nodeId)),
+            ).or(
+              NOTE.NODE_ID.eq(nodeId),
+            ),
         ).and(cursor?.after(NOTE.CREATED_AT, NOTE.ID) ?: DSL.noCondition())
         .orderBy(NOTE.CREATED_AT.desc(), NOTE.ID)
         .let { if (limit != null) it.limit(limit) else it }
-        .fetchInto(Note::class.java)
+        .fetch(::noteAndNode)
 
     return withMentions(notes)
   }
 
-  private fun withMentions(notes: List<Note>): List<NoteDbo> {
+  private fun noteAndNode(row: Record): Pair<Note, Node?> =
+    row.into(NOTE).into(Note::class.java) to
+      row.into(NODE).into(Node::class.java).takeIf { it.id != null }
+
+  private fun withMentions(notes: List<Pair<Note, Node?>>): List<NoteDbo> {
     if (notes.isEmpty()) return emptyList()
 
     val mentionsByNote =
@@ -82,7 +92,7 @@ class NotesRepository(
         .from(NOTE_MENTION)
         .innerJoin(NODE)
         .on(NOTE_MENTION.NODE.eq(NODE.ID))
-        .where(NOTE_MENTION.NOTE.`in`(notes.map { it.id }))
+        .where(NOTE_MENTION.NOTE.`in`(notes.map { it.first.id }))
         .and(NODE.DELETED_AT.isNull)
         .orderBy(NOTE_MENTION.ID)
         .fetch { row ->
@@ -92,6 +102,8 @@ class NotesRepository(
           )
         }.groupBy { it.mention.note }
 
-    return notes.map { NoteDbo(note = it, mentions = mentionsByNote[it.id].orEmpty()) }
+    return notes.map { (note, node) ->
+      NoteDbo(note = note, node = node, mentions = mentionsByNote[note.id].orEmpty())
+    }
   }
 }

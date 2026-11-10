@@ -11,6 +11,7 @@ import kotlin.time.toKotlinInstant
 @Serializable
 data class NoteDto(
   val id: String,
+  val node: NoteNodeDto?,
   val body: JsonElement,
   val mentions: List<NoteMentionDto>,
   val createdAt: Instant,
@@ -23,9 +24,22 @@ data class NoteMentionDto(
   val nodeTitle: String,
 )
 
+@Serializable
+data class NoteNodeDto(
+  val id: String,
+  val title: String,
+)
+
 fun NoteDbo.toDto(): NoteDto =
   NoteDto(
     id = note.id!!,
+    node =
+      node?.let {
+        NoteNodeDto(
+          id = it.id!!,
+          title = it.title!!,
+        )
+      },
     body = Json.parseToJsonElement(note.body!!.data()),
     mentions = mentions.map { it.toDto() },
     createdAt = note.createdAt!!.toInstant().toKotlinInstant(),

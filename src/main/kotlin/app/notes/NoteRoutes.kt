@@ -4,8 +4,6 @@ import app.notes.dtos.CreateNoteRequest
 import app.notes.dtos.toDto
 import app.utils.http.ClientError
 import app.utils.http.ClientException
-import app.utils.http.Cursor
-import app.utils.http.DEFAULT_PAGE_SIZE
 import app.utils.http.ListResponse
 import app.utils.http.workspaceId
 import io.ktor.http.HttpStatusCode
@@ -24,6 +22,7 @@ fun Route.noteRoutes(notesService: NotesService) {
         try {
           notesService.createNote(
             body = req.body,
+            nodeId = req.nodeId,
             workspaceId = call.workspaceId,
             mentions = req.mentions,
           )
@@ -34,22 +33,7 @@ fun Route.noteRoutes(notesService: NotesService) {
       call.respond(result.toDto())
     }
 
-    get("getAll") {
-      val pageSize = call.queryParameters["pageSize"]?.toIntOrNull() ?: DEFAULT_PAGE_SIZE
-      val page =
-        try {
-          notesService.getAllNotes(
-            workspaceId = call.workspaceId,
-            cursor = call.queryParameters["cursor"]?.let { Cursor.decode(it) },
-            pageSize = pageSize,
-          )
-        } catch (e: ClientException) {
-          return@get call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
-        }
-      call.respond(page.map { it.toDto() })
-    }
-
-    get("getByMentionedNode") {
+    get("getNotesForNode") {
       val nodeId =
         call.queryParameters["nodeId"]
           ?: return@get call.respond(
@@ -59,7 +43,7 @@ fun Route.noteRoutes(notesService: NotesService) {
 
       val notes =
         try {
-          notesService.getNotesMentioningNode(nodeId = nodeId, workspaceId = call.workspaceId)
+          notesService.getNotesForNode(nodeId = nodeId, workspaceId = call.workspaceId)
         } catch (e: ClientException) {
           return@get call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
         }

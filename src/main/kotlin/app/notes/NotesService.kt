@@ -1,15 +1,12 @@
 package app.notes
 
 import app.graph.GraphService
+import app.graph.validation.NoSuchNodeException
 import app.notes.db.NoteDbo
 import app.notes.db.NoteMentionDbo
 import app.notes.dtos.MentionRequest
 import app.notes.validation.NoSuchMentionedNodeException
 import app.utils.ResourceId
-import app.utils.http.Cursor
-import app.utils.http.DEFAULT_PAGE_SIZE
-import app.utils.http.Page
-import app.utils.http.toPage
 import app.utils.toResourceId
 import app.workspaces.WorkspaceService
 import app.workspaces.validation.NoSuchWorkspaceException
@@ -27,10 +24,12 @@ class NotesService(
 ) {
   fun createNote(
     body: JsonElement,
+    nodeId: ResourceId,
     workspaceId: ResourceId,
     mentions: List<MentionRequest>,
   ): NoteDbo {
     val workspace = workspaceService.getById(workspaceId) ?: throw NoSuchWorkspaceException()
+    val node = graphService.getNodeById(nodeId = nodeId, workspaceId = workspaceId) ?: throw NoSuchNodeException(nodeId)
 
     val mentionedNodes =
       mentions
@@ -44,6 +43,7 @@ class NotesService(
     val note =
       Note(
         id = newNoteId(),
+        nodeId = nodeId,
         body = JSONB.valueOf(body.toString()),
         createdAt = OffsetDateTime.now(),
         workspaceId = workspace.id!!,
@@ -62,7 +62,7 @@ class NotesService(
       }
 
     notesRepository.createNote(note, noteMentions.map { it.mention })
-    return NoteDbo(note = note, mentions = noteMentions)
+    return NoteDbo(note = note, node = node, mentions = noteMentions)
   }
 
   fun getNoteById(
@@ -70,22 +70,12 @@ class NotesService(
     workspaceId: ResourceId,
   ): NoteDbo? = notesRepository.findNoteById(noteId = noteId, workspaceId = workspaceId)
 
-  fun getAllNotes(
-    workspaceId: ResourceId,
-    cursor: Cursor? = null,
-    pageSize: Int = DEFAULT_PAGE_SIZE,
-  ): Page<NoteDbo> =
-    toPage(
-      notesRepository.findNotes(workspaceId = workspaceId, cursor = cursor, limit = pageSize + 1),
-      pageSize,
-    ) { Cursor(createdAt = it.note.createdAt!!, id = it.note.id!!) }
-
-  fun getNotesMentioningNode(
+  fun getNotesForNode(
     nodeId: ResourceId,
     workspaceId: ResourceId,
   ): List<NoteDbo> {
     graphService.getNodeById(nodeId = nodeId, workspaceId = workspaceId) ?: throw NoSuchMentionedNodeException(nodeId)
-    return notesRepository.findNotes(workspaceId = workspaceId, mentionedNodeId = nodeId)
+    return notesRepository.findNotes(workspaceId = workspaceId, nodeId = nodeId)
   }
 
   companion object {

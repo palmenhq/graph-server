@@ -31,7 +31,10 @@ class PropertyServiceTest {
     assertEquals("instagramUrl", property.name)
     assertEquals(PropertyValueType.text, property.valueType)
     assertEquals(person.id, property.nodeTypeId)
-    assertEquals(listOf(property.id), propertyService.getPropertiesByNodeType(person.id!!, workspace.id!!).map { it.id })
+    assertEquals(
+      listOf(property.id),
+      propertyService.getPropertiesByNodeType(person.id!!, workspace.id!!).map { it.id },
+    )
     assertEquals(0, propertyService.getPropertiesByNodeType(person.id!!, otherWorkspace.id!!).size)
 
     // The same name can be used on another node type, but not twice on the same one
@@ -64,7 +67,8 @@ class PropertyServiceTest {
     assertNull(unset.second.value)
     assertNull(unset.second.updatedAt)
 
-    val value = propertyService.setPropertyValue(alice.id!!, instagram.id!!, "https://instagram.com/alice", workspace.id!!)
+    val value =
+      propertyService.setPropertyValue(alice.id!!, instagram.id!!, "https://instagram.com/alice", workspace.id!!)
     assertEquals(PropertyValueType.text, value.second.valueType)
     assertEquals(
       listOf("https://instagram.com/alice"),
@@ -224,17 +228,17 @@ class PropertyServiceTest {
               "alice",
               "@alice.b_1",
             ) to
-            listOf(
-              "http://instagram.com/alice",
-              "https://instagram.com/",
-              "https://www.instagram.com/",
-              "http://www.instagram.com/alice",
-              "https://evil.com/instagram.com/",
-              "@",
-              "al ice",
-              "@alice!",
-              "",
-            )
+              listOf(
+                "http://instagram.com/alice",
+                "https://instagram.com/",
+                "https://www.instagram.com/",
+                "http://www.instagram.com/alice",
+                "https://evil.com/instagram.com/",
+                "@",
+                "al ice",
+                "@alice!",
+                "",
+              )
           ),
         PropertyValueType.tiktok to
           (
@@ -246,24 +250,40 @@ class PropertyServiceTest {
               "@alice",
               "alice",
             ) to
-              listOf("http://tiktok.com/@alice", "tiktok.com/", "www.tiktok.com/", "https://instagram.com/alice", "@@alice", "")
+              listOf(
+                "http://tiktok.com/@alice",
+                "tiktok.com/",
+                "www.tiktok.com/",
+                "https://instagram.com/alice",
+                "@@alice",
+                "",
+              )
           ),
         PropertyValueType.link to
-          (listOf("https://example.com", "http://example.com/path?q=1") to
-            listOf("example.com", "ftp://example.com", "https://", "https://exa mple.com")),
+          (
+            listOf("https://example.com", "http://example.com/path?q=1") to
+              listOf("example.com", "ftp://example.com", "https://", "https://exa mple.com")
+          ),
         PropertyValueType.phone to
-          (listOf("+46 70 123 45 67", "070-123 45 67", "(555) 123-4567") to
-            listOf("abc", "123", "+46 70 abc", "")),
+          (
+            listOf("+46 70 123 45 67", "070-123 45 67", "(555) 123-4567") to
+              listOf("abc", "123", "+46 70 abc", "")
+          ),
         PropertyValueType.email to
-          (listOf("alice@example.com", "alice.b+tag@sub.example.org") to
-            listOf("alice", "alice@", "alice@example", "a lice@example.com", "")),
+          (
+            listOf("alice@example.com", "alice.b+tag@sub.example.org") to
+              listOf("alice", "alice@", "alice@example", "a lice@example.com", "")
+          ),
         PropertyValueType.text to (listOf("anything", "") to emptyList()),
       )
 
     cases.forEach { (valueType, values) ->
       val property = propertyService.createProperty(person.id!!, valueType.literal, valueType, workspace.id!!)
       values.first.forEach { valid ->
-        assertEquals(valid, propertyService.setPropertyValue(alice.id!!, property.id!!, valid, workspace.id!!).second.value)
+        assertEquals(
+          valid,
+          propertyService.setPropertyValue(alice.id!!, property.id!!, valid, workspace.id!!).second.value,
+        )
       }
       values.second.forEach { invalid ->
         assertThrows(

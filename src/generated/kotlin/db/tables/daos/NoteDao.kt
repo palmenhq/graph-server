@@ -78,4 +78,15 @@ open class NoteDao(configuration: Configuration?) : DAOImpl<NoteRecord, Note, St
      * Fetch records that have <code>workspace_id IN (values)</code>
      */
     fun fetchByWorkspaceId(vararg values: String): List<Note> = fetch(NoteTable.NOTE.WORKSPACE_ID, *values)
+
+    /**
+     * Fetch records that have <code>node_id BETWEEN lowerInclusive AND
+     * upperInclusive</code>
+     */
+    fun fetchRangeOfNodeId(lowerInclusive: String?, upperInclusive: String?): List<Note> = fetchRange(NoteTable.NOTE.NODE_ID, lowerInclusive, upperInclusive)
+
+    /**
+     * Fetch records that have <code>node_id IN (values)</code>
+     */
+    fun fetchByNodeId(vararg values: String): List<Note> = fetch(NoteTable.NOTE.NODE_ID, *values)
 }

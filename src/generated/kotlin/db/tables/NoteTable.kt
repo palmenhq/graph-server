@@ -5,10 +5,13 @@ package db.tables
 
 
 import db.PublicSchema
+import db.indexes.NOTE_NODE_ID_IDX
 import db.indexes.NOTE_WORKSPACE_ID_CREATED_AT_IDX
 import db.keys.NOTE_MENTION__NOTE_MENTION_NOTE_FKEY
 import db.keys.NOTE_PKEY
+import db.keys.NOTE__NOTE_NODE_ID_FKEY
 import db.keys.NOTE__NOTE_WORKSPACE_ID_FKEY
+import db.tables.NodeTable.NodePath
 import db.tables.NoteMentionTable.NoteMentionPath
 import db.tables.WorkspaceTable.WorkspacePath
 import db.tables.records.NoteRecord
@@ -100,6 +103,11 @@ open class NoteTable(
      */
     val WORKSPACE_ID: TableField<NoteRecord, String?> = createField(DSL.name("workspace_id"), SQLDataType.CLOB.nullable(false), this, "")
 
+    /**
+     * The column <code>public_schema.note.node_id</code>.
+     */
+    val NODE_ID: TableField<NoteRecord, String?> = createField(DSL.name("node_id"), SQLDataType.CLOB, this, "")
+
     private constructor(alias: Name, aliased: Table<NoteRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<NoteRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<NoteRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
@@ -132,9 +140,15 @@ open class NoteTable(
         override fun `as`(alias: Table<*>): NotePath = NotePath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else PublicSchema.PUBLIC_SCHEMA
-    override fun getIndexes(): List<Index> = listOf(NOTE_WORKSPACE_ID_CREATED_AT_IDX)
+    override fun getIndexes(): List<Index> = listOf(NOTE_NODE_ID_IDX, NOTE_WORKSPACE_ID_CREATED_AT_IDX)
     override fun getPrimaryKey(): UniqueKey<NoteRecord> = NOTE_PKEY
-    override fun getReferences(): List<ForeignKey<NoteRecord, *>> = listOf(NOTE__NOTE_WORKSPACE_ID_FKEY)
+    override fun getReferences(): List<ForeignKey<NoteRecord, *>> = listOf(NOTE__NOTE_NODE_ID_FKEY, NOTE__NOTE_WORKSPACE_ID_FKEY)
+
+    /**
+     * Get the implicit join path to the <code>public_schema.node</code> table.
+     */
+    fun node(): NodePath = node
+    val node: NodePath by lazy { NodePath(this, NOTE__NOTE_NODE_ID_FKEY, null) }
 
     /**
      * Get the implicit join path to the <code>public_schema.workspace</code>

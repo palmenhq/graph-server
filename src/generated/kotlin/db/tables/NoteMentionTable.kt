@@ -5,6 +5,7 @@ package db.tables
 
 
 import db.PublicSchema
+import db.indexes.NOTE_MENTION_NODE_IDX
 import db.indexes.NOTE_MENTION_NOTE_IDX
 import db.keys.NOTE_MENTION_PKEY
 import db.keys.NOTE_MENTION__NOTE_MENTION_NODE_FKEY
@@ -124,7 +125,7 @@ open class NoteMentionTable(
         override fun `as`(alias: Table<*>): NoteMentionPath = NoteMentionPath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else PublicSchema.PUBLIC_SCHEMA
-    override fun getIndexes(): List<Index> = listOf(NOTE_MENTION_NOTE_IDX)
+    override fun getIndexes(): List<Index> = listOf(NOTE_MENTION_NODE_IDX, NOTE_MENTION_NOTE_IDX)
     override fun getPrimaryKey(): UniqueKey<NoteMentionRecord> = NOTE_MENTION_PKEY
     override fun getReferences(): List<ForeignKey<NoteMentionRecord, *>> = listOf(NOTE_MENTION__NOTE_MENTION_NODE_FKEY, NOTE_MENTION__NOTE_MENTION_NOTE_FKEY)
 

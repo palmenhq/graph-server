@@ -16,11 +16,13 @@ import db.keys.NODE_PROPERTY_VALUE__NODE_PROPERTY_VALUE_NODE_ID_FKEY
 import db.keys.NODE__NODE_TYPE_FKEY
 import db.keys.NODE__NODE_WORKSPACE_ID_FKEY
 import db.keys.NOTE_MENTION__NOTE_MENTION_NODE_FKEY
+import db.keys.NOTE__NOTE_NODE_ID_FKEY
 import db.tables.EdgeTable.EdgePath
 import db.tables.NodePropertyTable.NodePropertyPath
 import db.tables.NodePropertyValueTable.NodePropertyValuePath
 import db.tables.NodeTypeTable.NodeTypePath
 import db.tables.NoteMentionTable.NoteMentionPath
+import db.tables.NoteTable.NotePath
 import db.tables.WorkspaceTable.WorkspacePath
 import db.tables.records.NodeRecord
 
@@ -233,6 +235,22 @@ open class NodeTable(
 
     val noteMention: NoteMentionPath
         get(): NoteMentionPath = noteMention()
+
+    private lateinit var _note: NotePath
+
+    /**
+     * Get the implicit to-many join path to the <code>public_schema.note</code>
+     * table
+     */
+    fun note(): NotePath {
+        if (!this::_note.isInitialized)
+            _note = NotePath(this, null, NOTE__NOTE_NODE_ID_FKEY.inverseKey)
+
+        return _note;
+    }
+
+    val note: NotePath
+        get(): NotePath = note()
 
     /**
      * Get the implicit many-to-many join path to the
