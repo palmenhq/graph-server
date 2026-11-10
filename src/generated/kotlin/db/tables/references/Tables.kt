@@ -11,6 +11,7 @@ import db.tables.EdgeTypeTable
 import db.tables.NodePropertyTable
 import db.tables.NodePropertyValueTable
 import db.tables.NodeTable
+import db.tables.NodeTypePreferredEdgeTypeTable
 import db.tables.NodeTypeTable
 import db.tables.NoteMentionTable
 import db.tables.NoteTable
@@ -54,6 +55,11 @@ val NODE_PROPERTY_VALUE: NodePropertyValueTable = NodePropertyValueTable.NODE_PR
  * The table <code>public_schema.node_type</code>.
  */
 val NODE_TYPE: NodeTypeTable = NodeTypeTable.NODE_TYPE
+
+/**
+ * The table <code>public_schema.node_type_preferred_edge_type</code>.
+ */
+val NODE_TYPE_PREFERRED_EDGE_TYPE: NodeTypePreferredEdgeTypeTable = NodeTypePreferredEdgeTypeTable.NODE_TYPE_PREFERRED_EDGE_TYPE
 
 /**
  * The table <code>public_schema.note</code>.

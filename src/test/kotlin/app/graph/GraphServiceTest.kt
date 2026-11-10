@@ -1,6 +1,7 @@
 package app.graph
 
 import TestHelp
+import app.graph.db.PreferredEdgeTypeDbo
 import app.graph.validation.NoSuchEdgeException
 import app.graph.validation.NoSuchEdgeTypeException
 import app.graph.validation.NoSuchNodeException
@@ -32,6 +33,133 @@ class GraphServiceTest {
     assertEquals(node.title, retrievedNode?.title)
 
     assertNull(graphService.getNodeById(node.id!!, workspaceId = "invalid"))
+  }
+
+  @Test
+  fun `adds preferred edge types for node and returns it`() {
+    val workspace = TestHelp.createWorkspace("test")
+
+    val nodeType = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
+    val edgeType1 =
+      graphService.createEdgeType(
+        relationshipTitle = "knows",
+        reverseRelationshipTitle = "is known by",
+        workspaceId = workspace.id!!,
+      )
+    val edgeType2 =
+      graphService.createEdgeType(
+        relationshipTitle = "is of brand",
+        reverseRelationshipTitle = "is brand of",
+        workspaceId = workspace.id!!,
+      )
+
+    val preferredEdgeTypes =
+      listOf(
+        PreferredEdgeTypeDbo(
+          edgeTypeId = edgeType1.id!!,
+          reverse = false,
+        ),
+      )
+    graphService.setPreferredEdgeTypesForNodeType(
+      nodeTypeId = nodeType.id!!,
+      preferredEdgeTypes = preferredEdgeTypes,
+      workspaceId = workspace.id!!,
+    )
+
+    val nodeTypeWithPreferredEdgeTypes =
+      graphService.getNodeTypeById(nodeTypeId = nodeType.id!!, workspaceId = workspace.id!!)
+    assertNotNull(nodeTypeWithPreferredEdgeTypes)
+    assertEquals(nodeTypeWithPreferredEdgeTypes!!.preferredEdgeTypes, preferredEdgeTypes)
+  }
+
+  @Test
+  fun `replaces preferred edge types preserving order and direction`() {
+    val workspace = TestHelp.createWorkspace("test")
+    val nodeType = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
+    val knows = graphService.createEdgeType(relationshipTitle = "knows", workspaceId = workspace.id!!)
+    val employedBy = graphService.createEdgeType(relationshipTitle = "is employed by", workspaceId = workspace.id!!)
+    val preferences =
+      listOf(
+        PreferredEdgeTypeDbo(edgeTypeId = knows.id!!, reverse = false),
+        PreferredEdgeTypeDbo(edgeTypeId = employedBy.id!!, reverse = true),
+        PreferredEdgeTypeDbo(edgeTypeId = knows.id!!, reverse = true),
+      )
+
+    assertEquals(
+      preferences,
+      graphService
+        .setPreferredEdgeTypesForNodeType(nodeType.id!!, preferences, workspace.id!!)
+        .preferredEdgeTypes,
+    )
+    assertEquals(
+      preferences,
+      graphService.getNodeTypes(workspace.id!!).single { it.id == nodeType.id }.preferredEdgeTypes,
+    )
+
+    val replacement =
+      listOf(
+        PreferredEdgeTypeDbo(edgeTypeId = employedBy.id!!, reverse = false),
+        PreferredEdgeTypeDbo(edgeTypeId = knows.id!!, reverse = true),
+        PreferredEdgeTypeDbo(edgeTypeId = employedBy.id!!, reverse = false),
+      )
+    assertEquals(
+      replacement.distinct(),
+      graphService
+        .setPreferredEdgeTypesForNodeType(nodeType.id!!, replacement, workspace.id!!)
+        .preferredEdgeTypes,
+    )
+    assertEquals(
+      emptyList<PreferredEdgeTypeDbo>(),
+      graphService.setPreferredEdgeTypesForNodeType(nodeType.id!!, emptyList(), workspace.id!!).preferredEdgeTypes,
+    )
+  }
+
+  @Test
+  fun `rejects invalid preferred edge types without changing saved preferences`() {
+    val workspace = TestHelp.createWorkspace("test")
+    val otherWorkspace = TestHelp.createWorkspace("other")
+    val nodeType = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
+    val validEdgeType = graphService.createEdgeType(relationshipTitle = "knows", workspaceId = workspace.id!!)
+    val otherWorkspaceEdgeType =
+      graphService.createEdgeType(relationshipTitle = "works for", workspaceId = otherWorkspace.id!!)
+    val existingPreferences = listOf(PreferredEdgeTypeDbo(edgeTypeId = validEdgeType.id!!, reverse = false))
+    graphService.setPreferredEdgeTypesForNodeType(nodeType.id!!, existingPreferences, workspace.id!!)
+
+    assertThrows(NoSuchNodeTypeException::class.java) {
+      graphService.setPreferredEdgeTypesForNodeType("missing-node-type", emptyList(), workspace.id!!)
+    }
+    assertThrows(NoSuchEdgeTypeException::class.java) {
+      graphService.setPreferredEdgeTypesForNodeType(
+        nodeType.id!!,
+        listOf(PreferredEdgeTypeDbo(edgeTypeId = "missing-edge-type", reverse = false)),
+        workspace.id!!,
+      )
+    }
+    assertThrows(NoSuchEdgeTypeException::class.java) {
+      graphService.setPreferredEdgeTypesForNodeType(
+        nodeType.id!!,
+        listOf(PreferredEdgeTypeDbo(edgeTypeId = otherWorkspaceEdgeType.id!!, reverse = false)),
+        workspace.id!!,
+      )
+    }
+
+    assertEquals(existingPreferences, graphService.getNodeTypeById(nodeType.id!!, workspace.id!!)!!.preferredEdgeTypes)
+  }
+
+  @Test
+  fun `does not return soft-deleted edge types as preferences`() {
+    val workspace = TestHelp.createWorkspace("test")
+    val nodeType = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
+    val edgeType = graphService.createEdgeType(relationshipTitle = "knows", workspaceId = workspace.id!!)
+    graphService.setPreferredEdgeTypesForNodeType(
+      nodeType.id!!,
+      listOf(PreferredEdgeTypeDbo(edgeTypeId = edgeType.id!!, reverse = false)),
+      workspace.id!!,
+    )
+
+    graphService.deleteEdgeType(edgeType.id!!, workspace.id!!)
+
+    assertEquals(emptyList<PreferredEdgeTypeDbo>(), graphService.getNodeTypes(workspace.id!!).single().preferredEdgeTypes)
   }
 
   @Test

@@ -9,6 +9,7 @@ import db.keys.EDGE_TYPE__EDGE_TYPE_WORKSPACE_ID_FKEY
 import db.keys.EDGE__EDGE_WORKSPACE_ID_FKEY
 import db.keys.NODE_PROPERTY_VALUE__NODE_PROPERTY_VALUE_WORKSPACE_ID_FKEY
 import db.keys.NODE_PROPERTY__NODE_PROPERTY_WORKSPACE_ID_FKEY
+import db.keys.NODE_TYPE_PREFERRED_EDGE_TYPE__NODE_TYPE_PREFERRED_EDGE_TYPE_WORKSPACE_ID_FKEY
 import db.keys.NODE_TYPE__NODE_TYPE_WORKSPACE_ID_FKEY
 import db.keys.NODE__NODE_WORKSPACE_ID_FKEY
 import db.keys.NOTE__NOTE_WORKSPACE_ID_FKEY
@@ -20,6 +21,7 @@ import db.tables.EdgeTypeTable.EdgeTypePath
 import db.tables.NodePropertyTable.NodePropertyPath
 import db.tables.NodePropertyValueTable.NodePropertyValuePath
 import db.tables.NodeTable.NodePath
+import db.tables.NodeTypePreferredEdgeTypeTable.NodeTypePreferredEdgeTypePath
 import db.tables.NodeTypeTable.NodeTypePath
 import db.tables.NoteTable.NotePath
 import db.tables.WorkspaceMemberTable.WorkspaceMemberPath
@@ -201,6 +203,22 @@ open class WorkspaceTable(
 
     val nodeProperty: NodePropertyPath
         get(): NodePropertyPath = nodeProperty()
+
+    private lateinit var _nodeTypePreferredEdgeType: NodeTypePreferredEdgeTypePath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public_schema.node_type_preferred_edge_type</code> table
+     */
+    fun nodeTypePreferredEdgeType(): NodeTypePreferredEdgeTypePath {
+        if (!this::_nodeTypePreferredEdgeType.isInitialized)
+            _nodeTypePreferredEdgeType = NodeTypePreferredEdgeTypePath(this, null, NODE_TYPE_PREFERRED_EDGE_TYPE__NODE_TYPE_PREFERRED_EDGE_TYPE_WORKSPACE_ID_FKEY.inverseKey)
+
+        return _nodeTypePreferredEdgeType;
+    }
+
+    val nodeTypePreferredEdgeType: NodeTypePreferredEdgeTypePath
+        get(): NodeTypePreferredEdgeTypePath = nodeTypePreferredEdgeType()
 
     private lateinit var _nodeType: NodeTypePath
 

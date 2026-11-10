@@ -8,11 +8,13 @@ import app.graph.dtos.CreatePropertyRequest
 import app.graph.dtos.DeletePropertyRequest
 import app.graph.dtos.DeleteRequest
 import app.graph.dtos.RenamePropertyRequest
+import app.graph.dtos.SetPreferredEdgeTypesRequest
 import app.graph.dtos.SetPropertyValueRequest
 import app.graph.dtos.UpdateEdgeRequest
 import app.graph.dtos.UpdateEdgeTypeRequest
 import app.graph.dtos.UpdateNodeRequest
 import app.graph.dtos.UpdateNodeTypeRequest
+import app.graph.dtos.toDbo
 import app.graph.dtos.toDto
 import app.graph.dtos.toEdgeDto
 import app.graph.dtos.toFullDto
@@ -92,6 +94,22 @@ fun Route.graphRoutes(
         val result =
           try {
             graphService.updateNodeType(nodeTypeId = req.id, workspaceId = call.workspaceId, title = req.title)
+          } catch (e: ClientException) {
+            return@post call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
+          }
+
+        call.respond(result.toDto())
+      }
+
+      post("setPreferredEdgeTypes") {
+        val req = call.receive<SetPreferredEdgeTypesRequest>()
+        val result =
+          try {
+            graphService.setPreferredEdgeTypesForNodeType(
+              nodeTypeId = req.nodeTypeId,
+              preferredEdgeTypes = req.preferredEdgeTypes.map { it.toDbo() },
+              workspaceId = call.workspaceId,
+            )
           } catch (e: ClientException) {
             return@post call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
           }

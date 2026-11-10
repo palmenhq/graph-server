@@ -8,6 +8,8 @@ import db.PublicSchema
 import db.indexes.EDGE_TYPE_WORKSPACE_ID_IXD
 import db.keys.EDGE_TYPE_PKEY
 import db.keys.EDGE_TYPE__EDGE_TYPE_WORKSPACE_ID_FKEY
+import db.keys.NODE_TYPE_PREFERRED_EDGE_TYPE__NODE_TYPE_PREFERRED_EDGE_TYPE_EDGE_TYPE_ID_FKEY
+import db.tables.NodeTypePreferredEdgeTypeTable.NodeTypePreferredEdgeTypePath
 import db.tables.WorkspaceTable.WorkspacePath
 import db.tables.records.EdgeTypeRecord
 
@@ -150,6 +152,22 @@ open class EdgeTypeTable(
      */
     fun workspace(): WorkspacePath = workspace
     val workspace: WorkspacePath by lazy { WorkspacePath(this, EDGE_TYPE__EDGE_TYPE_WORKSPACE_ID_FKEY, null) }
+
+    private lateinit var _nodeTypePreferredEdgeType: NodeTypePreferredEdgeTypePath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public_schema.node_type_preferred_edge_type</code> table
+     */
+    fun nodeTypePreferredEdgeType(): NodeTypePreferredEdgeTypePath {
+        if (!this::_nodeTypePreferredEdgeType.isInitialized)
+            _nodeTypePreferredEdgeType = NodeTypePreferredEdgeTypePath(this, null, NODE_TYPE_PREFERRED_EDGE_TYPE__NODE_TYPE_PREFERRED_EDGE_TYPE_EDGE_TYPE_ID_FKEY.inverseKey)
+
+        return _nodeTypePreferredEdgeType;
+    }
+
+    val nodeTypePreferredEdgeType: NodeTypePreferredEdgeTypePath
+        get(): NodeTypePreferredEdgeTypePath = nodeTypePreferredEdgeType()
     override fun `as`(alias: String): EdgeTypeTable = EdgeTypeTable(DSL.name(alias), this)
     override fun `as`(alias: Name): EdgeTypeTable = EdgeTypeTable(alias, this)
     override fun `as`(alias: Table<*>): EdgeTypeTable = EdgeTypeTable(alias.qualifiedName, this)

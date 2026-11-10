@@ -1,6 +1,7 @@
 package app.graph
 
 import app.graph.db.NodeEdgeDbo
+import app.graph.db.PreferredEdgeTypeDbo
 import app.utils.ResourceId
 import app.utils.http.Cursor
 import db.tables.daos.EdgeDao
@@ -15,6 +16,7 @@ import db.tables.references.EDGE
 import db.tables.references.EDGE_TYPE
 import db.tables.references.NODE
 import db.tables.references.NODE_TYPE
+import db.tables.references.NODE_TYPE_PREFERRED_EDGE_TYPE
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.Record
@@ -33,6 +35,7 @@ class GraphRepository(
   private val fromNodeAlias = NODE.`as`("from_node")
   private val toNodeAlias = NODE.`as`("to_node")
   private val edgeTypeAlias = EDGE_TYPE.`as`("edge_type")
+  private val preferredEdgeTypeAlias = NODE_TYPE_PREFERRED_EDGE_TYPE.`as`("preferred_edge_type")
 
   fun createNodeType(nodeType: NodeType) {
     nodeTypeDao.insert(nodeType)
@@ -97,6 +100,62 @@ class GraphRepository(
       .and(NODE_TYPE.DELETED_AT.isNull)
       .orderBy(NODE_TYPE.CREATED_AT, NODE_TYPE.ID)
       .fetchInto(NodeType::class.java)
+
+  fun findPreferredEdgeTypes(
+    nodeTypeIds: Collection<ResourceId>,
+    workspaceId: ResourceId,
+  ): Map<ResourceId, List<PreferredEdgeTypeDbo>> {
+    if (nodeTypeIds.isEmpty()) return emptyMap()
+
+    return dsl
+      .select(
+        preferredEdgeTypeAlias.NODE_TYPE_ID,
+        preferredEdgeTypeAlias.EDGE_TYPE_ID,
+        preferredEdgeTypeAlias.REVERSE,
+      ).from(preferredEdgeTypeAlias)
+      .innerJoin(edgeTypeAlias)
+      .on(preferredEdgeTypeAlias.EDGE_TYPE_ID.eq(edgeTypeAlias.ID))
+      .where(preferredEdgeTypeAlias.NODE_TYPE_ID.`in`(nodeTypeIds))
+      .and(preferredEdgeTypeAlias.WORKSPACE_ID.eq(workspaceId))
+      .and(edgeTypeAlias.WORKSPACE_ID.eq(workspaceId))
+      .and(edgeTypeAlias.DELETED_AT.isNull)
+      .orderBy(preferredEdgeTypeAlias.NODE_TYPE_ID, preferredEdgeTypeAlias.POSITION)
+      .fetch()
+      .groupBy(
+        { it.get(preferredEdgeTypeAlias.NODE_TYPE_ID)!! },
+        {
+          PreferredEdgeTypeDbo(
+            edgeTypeId = it.get(preferredEdgeTypeAlias.EDGE_TYPE_ID)!!,
+            reverse = it.get(preferredEdgeTypeAlias.REVERSE)!!,
+          )
+        },
+      )
+  }
+
+  fun replacePreferredEdgeTypes(
+    nodeTypeId: ResourceId,
+    preferredEdgeTypes: List<PreferredEdgeTypeDbo>,
+    workspaceId: ResourceId,
+  ) {
+    dsl.transaction { configuration ->
+      val tx = DSL.using(configuration)
+      tx
+        .deleteFrom(NODE_TYPE_PREFERRED_EDGE_TYPE)
+        .where(NODE_TYPE_PREFERRED_EDGE_TYPE.NODE_TYPE_ID.eq(nodeTypeId))
+        .execute()
+
+      preferredEdgeTypes.forEachIndexed { position, preferredEdgeType ->
+        tx
+          .insertInto(NODE_TYPE_PREFERRED_EDGE_TYPE)
+          .set(NODE_TYPE_PREFERRED_EDGE_TYPE.NODE_TYPE_ID, nodeTypeId)
+          .set(NODE_TYPE_PREFERRED_EDGE_TYPE.EDGE_TYPE_ID, preferredEdgeType.edgeTypeId)
+          .set(NODE_TYPE_PREFERRED_EDGE_TYPE.REVERSE, preferredEdgeType.reverse)
+          .set(NODE_TYPE_PREFERRED_EDGE_TYPE.POSITION, position)
+          .set(NODE_TYPE_PREFERRED_EDGE_TYPE.WORKSPACE_ID, workspaceId)
+          .execute()
+      }
+    }
+  }
 
   fun findEdgeTypeById(
     edgeTypeId: ResourceId,

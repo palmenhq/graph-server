@@ -1,6 +1,8 @@
 package app.graph
 
 import app.graph.db.NodeEdgeDbo
+import app.graph.db.NodeTypeDbo
+import app.graph.db.PreferredEdgeTypeDbo
 import app.graph.validation.NoSuchEdgeException
 import app.graph.validation.NoSuchEdgeTypeException
 import app.graph.validation.NoSuchNodeException
@@ -133,13 +135,34 @@ class GraphService(
   fun getNodeTypeById(
     nodeTypeId: ResourceId,
     workspaceId: ResourceId,
-  ): NodeType? =
-    graphRepository.findNodeTypeById(
-      nodeTypeId = nodeTypeId,
-      workspaceId = workspaceId,
-    )
+  ): NodeTypeDbo? {
+    val nodeType = graphRepository.findNodeTypeById(nodeTypeId = nodeTypeId, workspaceId = workspaceId) ?: return null
+    val preferredEdgeTypes = graphRepository.findPreferredEdgeTypes(listOf(nodeTypeId), workspaceId)[nodeTypeId] ?: emptyList()
+    return NodeTypeDbo(nodeType = nodeType, preferredEdgeTypes = preferredEdgeTypes)
+  }
 
-  fun getNodeTypes(workspaceId: ResourceId): List<NodeType> = graphRepository.findNodeTypes(workspaceId)
+  fun getNodeTypes(workspaceId: ResourceId): List<NodeTypeDbo> {
+    val nodeTypes = graphRepository.findNodeTypes(workspaceId)
+    val preferredEdgeTypes = graphRepository.findPreferredEdgeTypes(nodeTypes.map { it.id!! }, workspaceId)
+    return nodeTypes.map { NodeTypeDbo(it, preferredEdgeTypes[it.id] ?: emptyList()) }
+  }
+
+  fun setPreferredEdgeTypesForNodeType(
+    nodeTypeId: ResourceId,
+    preferredEdgeTypes: List<PreferredEdgeTypeDbo>,
+    workspaceId: ResourceId,
+  ): NodeTypeDbo {
+    graphRepository.findNodeTypeById(nodeTypeId, workspaceId) ?: throw NoSuchNodeTypeException(nodeTypeId)
+
+    val uniquePreferredEdgeTypes = preferredEdgeTypes.distinct()
+    uniquePreferredEdgeTypes.forEach { preferredEdgeType ->
+      graphRepository.findEdgeTypeById(preferredEdgeType.edgeTypeId, workspaceId)
+        ?: throw NoSuchEdgeTypeException(preferredEdgeType.edgeTypeId)
+    }
+
+    graphRepository.replacePreferredEdgeTypes(nodeTypeId, uniquePreferredEdgeTypes, workspaceId)
+    return getNodeTypeById(nodeTypeId, workspaceId) ?: throw NoSuchNodeTypeException(nodeTypeId)
+  }
 
   fun getEdgeTypeById(
     edgeTypeId: ResourceId,
@@ -182,11 +205,11 @@ class GraphService(
     nodeTypeId: ResourceId,
     workspaceId: ResourceId,
     title: String,
-  ): NodeType {
+  ): NodeTypeDbo {
     if (!graphRepository.updateNodeType(nodeTypeId = nodeTypeId, workspaceId = workspaceId, title = title)) {
       throw NoSuchNodeTypeException(nodeTypeId)
     }
-    return graphRepository.findNodeTypeById(nodeTypeId, workspaceId) ?: throw NoSuchNodeTypeException(nodeTypeId)
+    return getNodeTypeById(nodeTypeId, workspaceId) ?: throw NoSuchNodeTypeException(nodeTypeId)
   }
 
   fun updateEdgeType(

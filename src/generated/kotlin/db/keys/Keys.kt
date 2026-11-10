@@ -11,6 +11,7 @@ import db.tables.EdgeTypeTable
 import db.tables.NodePropertyTable
 import db.tables.NodePropertyValueTable
 import db.tables.NodeTable
+import db.tables.NodeTypePreferredEdgeTypeTable
 import db.tables.NodeTypeTable
 import db.tables.NoteMentionTable
 import db.tables.NoteTable
@@ -23,6 +24,7 @@ import db.tables.records.EdgeTypeRecord
 import db.tables.records.NodePropertyRecord
 import db.tables.records.NodePropertyValueRecord
 import db.tables.records.NodeRecord
+import db.tables.records.NodeTypePreferredEdgeTypeRecord
 import db.tables.records.NodeTypeRecord
 import db.tables.records.NoteMentionRecord
 import db.tables.records.NoteRecord
@@ -50,6 +52,7 @@ val NODE_PKEY: UniqueKey<NodeRecord> = Internal.createUniqueKey(NodeTable.NODE, 
 val NODE_PROPERTY_PKEY: UniqueKey<NodePropertyRecord> = Internal.createUniqueKey(NodePropertyTable.NODE_PROPERTY, DSL.name("node_property_pkey"), arrayOf(NodePropertyTable.NODE_PROPERTY.ID), true)
 val NODE_PROPERTY_VALUE_PKEY: UniqueKey<NodePropertyValueRecord> = Internal.createUniqueKey(NodePropertyValueTable.NODE_PROPERTY_VALUE, DSL.name("node_property_value_pkey"), arrayOf(NodePropertyValueTable.NODE_PROPERTY_VALUE.NODE_ID, NodePropertyValueTable.NODE_PROPERTY_VALUE.PROPERTY_ID), true)
 val NODE_TYPE_PKEY: UniqueKey<NodeTypeRecord> = Internal.createUniqueKey(NodeTypeTable.NODE_TYPE, DSL.name("node_type_pkey"), arrayOf(NodeTypeTable.NODE_TYPE.ID), true)
+val NODE_TYPE_PREFERRED_EDGE_TYPE_PKEY: UniqueKey<NodeTypePreferredEdgeTypeRecord> = Internal.createUniqueKey(NodeTypePreferredEdgeTypeTable.NODE_TYPE_PREFERRED_EDGE_TYPE, DSL.name("node_type_preferred_edge_type_pkey"), arrayOf(NodeTypePreferredEdgeTypeTable.NODE_TYPE_PREFERRED_EDGE_TYPE.NODE_TYPE_ID, NodeTypePreferredEdgeTypeTable.NODE_TYPE_PREFERRED_EDGE_TYPE.EDGE_TYPE_ID, NodeTypePreferredEdgeTypeTable.NODE_TYPE_PREFERRED_EDGE_TYPE.REVERSE), true)
 val NOTE_PKEY: UniqueKey<NoteRecord> = Internal.createUniqueKey(NoteTable.NOTE, DSL.name("note_pkey"), arrayOf(NoteTable.NOTE.ID), true)
 val NOTE_MENTION_PKEY: UniqueKey<NoteMentionRecord> = Internal.createUniqueKey(NoteMentionTable.NOTE_MENTION, DSL.name("note_mention_pkey"), arrayOf(NoteMentionTable.NOTE_MENTION.ID), true)
 val SESSION_PKEY: UniqueKey<SessionRecord> = Internal.createUniqueKey(SessionTable.SESSION, DSL.name("session_pkey"), arrayOf(SessionTable.SESSION.ID), true)
@@ -72,6 +75,9 @@ val NODE_PROPERTY_VALUE__NODE_PROPERTY_VALUE_NODE_ID_FKEY: ForeignKey<NodeProper
 val NODE_PROPERTY_VALUE__NODE_PROPERTY_VALUE_PROPERTY_ID_FKEY: ForeignKey<NodePropertyValueRecord, NodePropertyRecord> = Internal.createForeignKey(NodePropertyValueTable.NODE_PROPERTY_VALUE, DSL.name("node_property_value_property_id_fkey"), arrayOf(NodePropertyValueTable.NODE_PROPERTY_VALUE.PROPERTY_ID), db.keys.NODE_PROPERTY_PKEY, arrayOf(NodePropertyTable.NODE_PROPERTY.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val NODE_PROPERTY_VALUE__NODE_PROPERTY_VALUE_WORKSPACE_ID_FKEY: ForeignKey<NodePropertyValueRecord, WorkspaceRecord> = Internal.createForeignKey(NodePropertyValueTable.NODE_PROPERTY_VALUE, DSL.name("node_property_value_workspace_id_fkey"), arrayOf(NodePropertyValueTable.NODE_PROPERTY_VALUE.WORKSPACE_ID), db.keys.WORKSPACE_PKEY, arrayOf(WorkspaceTable.WORKSPACE.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val NODE_TYPE__NODE_TYPE_WORKSPACE_ID_FKEY: ForeignKey<NodeTypeRecord, WorkspaceRecord> = Internal.createForeignKey(NodeTypeTable.NODE_TYPE, DSL.name("node_type_workspace_id_fkey"), arrayOf(NodeTypeTable.NODE_TYPE.WORKSPACE_ID), db.keys.WORKSPACE_PKEY, arrayOf(WorkspaceTable.WORKSPACE.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val NODE_TYPE_PREFERRED_EDGE_TYPE__NODE_TYPE_PREFERRED_EDGE_TYPE_EDGE_TYPE_ID_FKEY: ForeignKey<NodeTypePreferredEdgeTypeRecord, EdgeTypeRecord> = Internal.createForeignKey(NodeTypePreferredEdgeTypeTable.NODE_TYPE_PREFERRED_EDGE_TYPE, DSL.name("node_type_preferred_edge_type_edge_type_id_fkey"), arrayOf(NodeTypePreferredEdgeTypeTable.NODE_TYPE_PREFERRED_EDGE_TYPE.EDGE_TYPE_ID), db.keys.EDGE_TYPE_PKEY, arrayOf(EdgeTypeTable.EDGE_TYPE.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val NODE_TYPE_PREFERRED_EDGE_TYPE__NODE_TYPE_PREFERRED_EDGE_TYPE_NODE_TYPE_ID_FKEY: ForeignKey<NodeTypePreferredEdgeTypeRecord, NodeTypeRecord> = Internal.createForeignKey(NodeTypePreferredEdgeTypeTable.NODE_TYPE_PREFERRED_EDGE_TYPE, DSL.name("node_type_preferred_edge_type_node_type_id_fkey"), arrayOf(NodeTypePreferredEdgeTypeTable.NODE_TYPE_PREFERRED_EDGE_TYPE.NODE_TYPE_ID), db.keys.NODE_TYPE_PKEY, arrayOf(NodeTypeTable.NODE_TYPE.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val NODE_TYPE_PREFERRED_EDGE_TYPE__NODE_TYPE_PREFERRED_EDGE_TYPE_WORKSPACE_ID_FKEY: ForeignKey<NodeTypePreferredEdgeTypeRecord, WorkspaceRecord> = Internal.createForeignKey(NodeTypePreferredEdgeTypeTable.NODE_TYPE_PREFERRED_EDGE_TYPE, DSL.name("node_type_preferred_edge_type_workspace_id_fkey"), arrayOf(NodeTypePreferredEdgeTypeTable.NODE_TYPE_PREFERRED_EDGE_TYPE.WORKSPACE_ID), db.keys.WORKSPACE_PKEY, arrayOf(WorkspaceTable.WORKSPACE.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val NOTE__NOTE_NODE_ID_FKEY: ForeignKey<NoteRecord, NodeRecord> = Internal.createForeignKey(NoteTable.NOTE, DSL.name("note_node_id_fkey"), arrayOf(NoteTable.NOTE.NODE_ID), db.keys.NODE_PKEY, arrayOf(NodeTable.NODE.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val NOTE__NOTE_WORKSPACE_ID_FKEY: ForeignKey<NoteRecord, WorkspaceRecord> = Internal.createForeignKey(NoteTable.NOTE, DSL.name("note_workspace_id_fkey"), arrayOf(NoteTable.NOTE.WORKSPACE_ID), db.keys.WORKSPACE_PKEY, arrayOf(WorkspaceTable.WORKSPACE.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val NOTE_MENTION__NOTE_MENTION_NODE_FKEY: ForeignKey<NoteMentionRecord, NodeRecord> = Internal.createForeignKey(NoteMentionTable.NOTE_MENTION, DSL.name("note_mention_node_fkey"), arrayOf(NoteMentionTable.NOTE_MENTION.NODE), db.keys.NODE_PKEY, arrayOf(NodeTable.NODE.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)

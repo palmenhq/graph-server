@@ -10,6 +10,12 @@ data class UpdateNodeTypeRequest(
 )
 
 @Serializable
+data class SetPreferredEdgeTypesRequest(
+  val nodeTypeId: ResourceId,
+  val preferredEdgeTypes: List<PreferredEdgeTypeDto>,
+)
+
+@Serializable
 data class UpdateEdgeTypeRequest(
   val id: ResourceId,
   val relationshipTitle: String,

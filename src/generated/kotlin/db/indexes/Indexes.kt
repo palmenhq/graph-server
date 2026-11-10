@@ -10,6 +10,7 @@ import db.tables.EdgeTypeTable
 import db.tables.NodePropertyTable
 import db.tables.NodePropertyValueTable
 import db.tables.NodeTable
+import db.tables.NodeTypePreferredEdgeTypeTable
 import db.tables.NodeTypeTable
 import db.tables.NoteMentionTable
 import db.tables.NoteTable
@@ -39,6 +40,7 @@ val NODE_PROPERTY_VALUE_PROPERTY_ID_IDX: Index = Internal.createIndex(DSL.name("
 val NODE_PROPERTY_WORKSPACE_ID_IDX: Index = Internal.createIndex(DSL.name("node_property_workspace_id_idx"), NodePropertyTable.NODE_PROPERTY, arrayOf(NodePropertyTable.NODE_PROPERTY.WORKSPACE_ID), false)
 val NODE_TITLE_SEARCH_TRGM: Index = Internal.createIndex(DSL.name("node_title_search_trgm"), NodeTable.NODE, arrayOf(NodeTable.NODE.TITLE), false)
 val NODE_TYPE_IDX: Index = Internal.createIndex(DSL.name("node_type_idx"), NodeTable.NODE, arrayOf(NodeTable.NODE.TYPE, NodeTable.NODE.ID), false)
+val NODE_TYPE_PREFERRED_EDGE_TYPE_EDGE_TYPE_ID_IDX: Index = Internal.createIndex(DSL.name("node_type_preferred_edge_type_edge_type_id_idx"), NodeTypePreferredEdgeTypeTable.NODE_TYPE_PREFERRED_EDGE_TYPE, arrayOf(NodeTypePreferredEdgeTypeTable.NODE_TYPE_PREFERRED_EDGE_TYPE.EDGE_TYPE_ID), false)
 val NODE_TYPE_WORKSPACE_ID_IDX: Index = Internal.createIndex(DSL.name("node_type_workspace_id_idx"), NodeTypeTable.NODE_TYPE, arrayOf(NodeTypeTable.NODE_TYPE.WORKSPACE_ID), false)
 val NODE_WORKSPACE_ID_IDX: Index = Internal.createIndex(DSL.name("node_workspace_id_idx"), NodeTable.NODE, arrayOf(NodeTable.NODE.WORKSPACE_ID), false)
 val NOTE_MENTION_NODE_IDX: Index = Internal.createIndex(DSL.name("note_mention_node_idx"), NoteMentionTable.NOTE_MENTION, arrayOf(NoteMentionTable.NOTE_MENTION.NODE), false)
