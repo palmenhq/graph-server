@@ -69,17 +69,17 @@ jobs:
             --tag "rg.fr-par.scw.cloud/graph-crm-ops/graph-crm-migrator:${{ github.sha }}" \
             --tag "rg.fr-par.scw.cloud/graph-crm-ops/graph-crm-migrator:latest"
 
-      - name: Login to Scaleway Container Registry
+      - name: Login to Scaleway Container Registry (main only)
         if: github.ref == 'refs/heads/main'
         uses: docker/login-action@v3
         with:
           username: nologin
           password: ${{ secrets.SCW_SECRET_KEY }}
           registry: rg.fr-par.scw.cloud/graph-crm-ops
-      - name: Push docker server images
+      - name: Push docker server images (main only)
         if: github.ref == 'refs/heads/main'
         run: docker push -a "rg.fr-par.scw.cloud/graph-crm-ops/graph-crm-server"
-      - name: Push docker migrator images
+      - name: Push docker migrator images (main only)
         if: github.ref == 'refs/heads/main'
         run: docker push -a "rg.fr-par.scw.cloud/graph-crm-ops/graph-crm-migrator"
 
