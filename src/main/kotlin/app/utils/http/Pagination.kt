@@ -8,7 +8,7 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeParseException
 import java.util.Base64
 
-const val DEFAULT_PAGE_SIZE = 30
+const val DEFAULT_PAGE_SIZE = 12 * 2
 
 @Serializable
 data class PageResponse<T>(
