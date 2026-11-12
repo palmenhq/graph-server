@@ -7,9 +7,11 @@ import app.graph.validation.NoSuchNodeException
 import app.notes.dtos.MentionRequest
 import app.notes.dtos.toDto
 import app.notes.validation.NoSuchMentionedNodeException
+import app.notes.validation.NoSuchNoteException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -100,6 +102,112 @@ class NotesServiceTest {
 
     assertEquals(1, created.mentions.size)
     assertEquals(1, notesService.getNoteById(created.note.id!!, workspace.id!!)!!.mentions.size)
+  }
+
+  @Test
+  fun `updates note body timestamp and replaces mentions`() {
+    val workspace = TestHelp.createWorkspace("test")
+    val nodeType = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
+    val alice = graphService.createNode(nodeType.id!!, "Alice", workspaceId = workspace.id!!)
+    val bob = graphService.createNode(nodeType.id!!, "Bob", workspaceId = workspace.id!!)
+    val carol = graphService.createNode(nodeType.id!!, "Carol", workspaceId = workspace.id!!)
+    val created =
+      notesService.createNote(
+        body = body("Before"),
+        nodeId = alice.id!!,
+        workspaceId = workspace.id!!,
+        mentions = listOf(MentionRequest(bob.id!!)),
+      )
+
+    assertNull(created.toDto().updatedAt)
+
+    val updated =
+      notesService.updateNote(
+        noteId = created.note.id!!,
+        body = body("After"),
+        workspaceId = workspace.id!!,
+        mentions = listOf(MentionRequest(carol.id!!), MentionRequest(carol.id!!)),
+      )
+
+    assertEquals(body("After"), updated.toDto().body)
+    assertEquals(alice.id, updated.node?.id)
+    assertEquals(listOf(carol.id), updated.mentions.map { it.node.id })
+    assertEquals(1, updated.mentions.size)
+    assertNotNull(updated.toDto().updatedAt)
+    assertEquals(
+      setOf(carol.id),
+      updated.mentions.map { it.node.id }.toSet(),
+    )
+    assertTrue(updated.mentions.none { it.mention.id in created.mentions.map { mention -> mention.mention.id } })
+  }
+
+  @Test
+  fun `cannot update an unknown note or a note from another workspace`() {
+    val workspace = TestHelp.createWorkspace("test")
+    val otherWorkspace = TestHelp.createWorkspace("other")
+    val nodeType = graphService.createNodeType(title = "Contact", workspaceId = otherWorkspace.id!!)
+    val alice = graphService.createNode(nodeType.id!!, "Alice", workspaceId = otherWorkspace.id!!)
+    val created = notesService.createNote(body("Secret"), alice.id!!, otherWorkspace.id!!, emptyList())
+
+    assertThrows<NoSuchNoteException> {
+      notesService.updateNote(
+        noteId = "nte:does-not-exist",
+        body = body("Changed"),
+        workspaceId = workspace.id!!,
+        mentions = emptyList(),
+      )
+    }
+    assertThrows<NoSuchNoteException> {
+      notesService.updateNote(
+        noteId = created.note.id!!,
+        body = body("Changed"),
+        workspaceId = workspace.id!!,
+        mentions = emptyList(),
+      )
+    }
+    assertEquals(body("Secret"), notesService.getNoteById(created.note.id!!, otherWorkspace.id!!)!!.toDto().body)
+    assertNull(notesService.getNoteById(created.note.id!!, workspace.id!!))
+  }
+
+  @Test
+  fun `invalid update mentions leave the note unchanged`() {
+    val workspace = TestHelp.createWorkspace("test")
+    val otherWorkspace = TestHelp.createWorkspace("other")
+    val nodeType = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
+    val foreignNodeType = graphService.createNodeType(title = "Contact", workspaceId = otherWorkspace.id!!)
+    val alice = graphService.createNode(nodeType.id!!, "Alice", workspaceId = workspace.id!!)
+    val bob = graphService.createNode(nodeType.id!!, "Bob", workspaceId = workspace.id!!)
+    val foreignNode = graphService.createNode(foreignNodeType.id!!, "Mallory", workspaceId = otherWorkspace.id!!)
+    val created =
+      notesService.createNote(
+        body = body("Before"),
+        nodeId = alice.id!!,
+        workspaceId = workspace.id!!,
+        mentions = listOf(MentionRequest(bob.id!!)),
+      )
+
+    assertThrows<NoSuchMentionedNodeException> {
+      notesService.updateNote(
+        noteId = created.note.id!!,
+        body = body("Unknown mention"),
+        workspaceId = workspace.id!!,
+        mentions = listOf(MentionRequest("nde:does-not-exist")),
+      )
+    }
+    assertThrows<NoSuchMentionedNodeException> {
+      notesService.updateNote(
+        noteId = created.note.id!!,
+        body = body("Foreign mention"),
+        workspaceId = workspace.id!!,
+        mentions = listOf(MentionRequest(foreignNode.id!!)),
+      )
+    }
+
+    val unchanged = notesService.getNoteById(created.note.id!!, workspace.id!!)!!
+    assertEquals(body("Before"), unchanged.toDto().body)
+    assertNull(unchanged.toDto().updatedAt)
+    assertEquals(listOf(bob.id), unchanged.mentions.map { it.node.id })
+    assertEquals(created.mentions.map { it.mention.id }, unchanged.mentions.map { it.mention.id })
   }
 
   @Test

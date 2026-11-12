@@ -40,6 +40,10 @@ open class NoteRecord() : UpdatableRecordImpl<NoteRecord>(NoteTable.NOTE) {
         set(value): Unit = set(4, value)
         get(): String? = get(4) as String?
 
+    open var updatedAt: OffsetDateTime?
+        set(value): Unit = set(5, value)
+        get(): OffsetDateTime? = get(5) as OffsetDateTime?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -49,12 +53,13 @@ open class NoteRecord() : UpdatableRecordImpl<NoteRecord>(NoteTable.NOTE) {
     /**
      * Create a detached, initialised NoteRecord
      */
-    constructor(id: String? = null, body: JSONB? = null, createdAt: OffsetDateTime? = null, workspaceId: String? = null, nodeId: String? = null): this() {
+    constructor(id: String? = null, body: JSONB? = null, createdAt: OffsetDateTime? = null, workspaceId: String? = null, nodeId: String? = null, updatedAt: OffsetDateTime? = null): this() {
         this.id = id
         this.body = body
         this.createdAt = createdAt
         this.workspaceId = workspaceId
         this.nodeId = nodeId
+        this.updatedAt = updatedAt
         resetTouchedOnNotNull()
     }
 
@@ -68,6 +73,7 @@ open class NoteRecord() : UpdatableRecordImpl<NoteRecord>(NoteTable.NOTE) {
             this.createdAt = value.createdAt
             this.workspaceId = value.workspaceId
             this.nodeId = value.nodeId
+            this.updatedAt = value.updatedAt
             resetTouchedOnNotNull()
         }
     }

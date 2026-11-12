@@ -89,4 +89,15 @@ open class NoteDao(configuration: Configuration?) : DAOImpl<NoteRecord, Note, St
      * Fetch records that have <code>node_id IN (values)</code>
      */
     fun fetchByNodeId(vararg values: String): List<Note> = fetch(NoteTable.NOTE.NODE_ID, *values)
+
+    /**
+     * Fetch records that have <code>updated_at BETWEEN lowerInclusive AND
+     * upperInclusive</code>
+     */
+    fun fetchRangeOfUpdatedAt(lowerInclusive: OffsetDateTime?, upperInclusive: OffsetDateTime?): List<Note> = fetchRange(NoteTable.NOTE.UPDATED_AT, lowerInclusive, upperInclusive)
+
+    /**
+     * Fetch records that have <code>updated_at IN (values)</code>
+     */
+    fun fetchByUpdatedAt(vararg values: OffsetDateTime): List<Note> = fetch(NoteTable.NOTE.UPDATED_AT, *values)
 }

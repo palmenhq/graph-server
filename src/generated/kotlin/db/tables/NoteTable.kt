@@ -108,6 +108,11 @@ open class NoteTable(
      */
     val NODE_ID: TableField<NoteRecord, String?> = createField(DSL.name("node_id"), SQLDataType.CLOB, this, "")
 
+    /**
+     * The column <code>public_schema.note.updated_at</code>.
+     */
+    val UPDATED_AT: TableField<NoteRecord, OffsetDateTime?> = createField(DSL.name("updated_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "")
+
     private constructor(alias: Name, aliased: Table<NoteRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<NoteRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<NoteRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)

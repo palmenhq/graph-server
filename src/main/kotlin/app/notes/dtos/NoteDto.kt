@@ -15,6 +15,7 @@ data class NoteDto(
   val body: JsonElement,
   val mentions: List<NoteMentionDto>,
   val createdAt: Instant,
+  val updatedAt: Instant?,
 )
 
 @Serializable
@@ -43,6 +44,7 @@ fun NoteDbo.toDto(): NoteDto =
     body = Json.parseToJsonElement(note.body!!.data()),
     mentions = mentions.map { it.toDto() },
     createdAt = note.createdAt!!.toInstant().toKotlinInstant(),
+    updatedAt = note.updatedAt?.toInstant()?.toKotlinInstant(),
   )
 
 fun NoteMentionDbo.toDto(): NoteMentionDto =

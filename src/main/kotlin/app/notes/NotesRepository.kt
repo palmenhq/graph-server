@@ -13,8 +13,10 @@ import db.tables.references.NODE
 import db.tables.references.NOTE
 import db.tables.references.NOTE_MENTION
 import org.jooq.DSLContext
+import org.jooq.JSONB
 import org.jooq.Record
 import org.jooq.impl.DSL
+import java.time.OffsetDateTime
 
 class NotesRepository(
   private val dsl: DSLContext,
@@ -30,6 +32,34 @@ class NotesRepository(
       }
     }
   }
+
+  fun updateNote(
+    noteId: ResourceId,
+    workspaceId: ResourceId,
+    body: JSONB,
+    updatedAt: OffsetDateTime,
+    mentions: List<NoteMention>,
+  ): Boolean =
+    dsl.transactionResult { config ->
+      val tx = DSL.using(config)
+      val updated =
+        tx
+          .update(NOTE)
+          .set(NOTE.BODY, body)
+          .set(NOTE.UPDATED_AT, updatedAt)
+          .where(NOTE.ID.eq(noteId))
+          .and(NOTE.WORKSPACE_ID.eq(workspaceId))
+          .execute() > 0
+
+      if (updated) {
+        tx.deleteFrom(NOTE_MENTION).where(NOTE_MENTION.NOTE.eq(noteId)).execute()
+        if (mentions.isNotEmpty()) {
+          NoteMentionDao(config).insert(mentions)
+        }
+      }
+
+      updated
+    }
 
   fun findNoteById(
     noteId: ResourceId,

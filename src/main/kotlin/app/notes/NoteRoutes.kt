@@ -1,6 +1,7 @@
 package app.notes
 
 import app.notes.dtos.CreateNoteRequest
+import app.notes.dtos.UpdateNoteRequest
 import app.notes.dtos.toDto
 import app.utils.http.ClientError
 import app.utils.http.ClientException
@@ -23,6 +24,23 @@ fun Route.noteRoutes(notesService: NotesService) {
           notesService.createNote(
             body = req.body,
             nodeId = req.nodeId,
+            workspaceId = call.workspaceId,
+            mentions = req.mentions,
+          )
+        } catch (e: ClientException) {
+          return@post call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
+        }
+
+      call.respond(result.toDto())
+    }
+
+    post("update") {
+      val req = call.receive<UpdateNoteRequest>()
+      val result =
+        try {
+          notesService.updateNote(
+            noteId = req.id,
+            body = req.body,
             workspaceId = call.workspaceId,
             mentions = req.mentions,
           )

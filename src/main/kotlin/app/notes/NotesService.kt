@@ -6,6 +6,7 @@ import app.notes.db.NoteDbo
 import app.notes.db.NoteMentionDbo
 import app.notes.dtos.MentionRequest
 import app.notes.validation.NoSuchMentionedNodeException
+import app.notes.validation.NoSuchNoteException
 import app.utils.ResourceId
 import app.utils.toResourceId
 import app.workspaces.WorkspaceService
@@ -31,38 +32,44 @@ class NotesService(
     val workspace = workspaceService.getById(workspaceId) ?: throw NoSuchWorkspaceException()
     val node = graphService.getNodeById(nodeId = nodeId, workspaceId = workspaceId) ?: throw NoSuchNodeException(nodeId)
 
-    val mentionedNodes =
-      mentions
-        .map { it.nodeId }
-        .distinct()
-        .map { nodeId ->
-          graphService.getNodeById(nodeId = nodeId, workspaceId = workspace.id!!)
-            ?: throw NoSuchMentionedNodeException(nodeId)
-        }
-
+    val noteId = newNoteId()
+    val noteMentions = buildMentions(noteId = noteId, workspaceId = workspace.id!!, mentions = mentions)
     val note =
       Note(
-        id = newNoteId(),
+        id = noteId,
         nodeId = nodeId,
         body = JSONB.valueOf(body.toString()),
         createdAt = OffsetDateTime.now(),
         workspaceId = workspace.id!!,
       )
-    val noteMentions =
-      mentionedNodes.map { node ->
-        NoteMentionDbo(
-          mention =
-            NoteMention(
-              id = newNoteMentionId(),
-              note = note.id,
-              node = node.id,
-            ),
-          node = node,
-        )
-      }
 
     notesRepository.createNote(note, noteMentions.map { it.mention })
     return NoteDbo(note = note, node = node, mentions = noteMentions)
+  }
+
+  fun updateNote(
+    noteId: ResourceId,
+    body: JsonElement,
+    workspaceId: ResourceId,
+    mentions: List<MentionRequest>,
+  ): NoteDbo {
+    notesRepository.findNoteById(noteId = noteId, workspaceId = workspaceId) ?: throw NoSuchNoteException(noteId)
+
+    val noteMentions = buildMentions(noteId = noteId, workspaceId = workspaceId, mentions = mentions)
+
+    if (
+      !notesRepository.updateNote(
+        noteId = noteId,
+        workspaceId = workspaceId,
+        body = JSONB.valueOf(body.toString()),
+        updatedAt = OffsetDateTime.now(),
+        mentions = noteMentions.map { it.mention },
+      )
+    ) {
+      throw NoSuchNoteException(noteId)
+    }
+
+    return notesRepository.findNoteById(noteId = noteId, workspaceId = workspaceId) ?: throw NoSuchNoteException(noteId)
   }
 
   fun getNoteById(
@@ -77,6 +84,29 @@ class NotesService(
     graphService.getNodeById(nodeId = nodeId, workspaceId = workspaceId) ?: throw NoSuchMentionedNodeException(nodeId)
     return notesRepository.findNotes(workspaceId = workspaceId, nodeId = nodeId)
   }
+
+  private fun buildMentions(
+    noteId: ResourceId,
+    workspaceId: ResourceId,
+    mentions: List<MentionRequest>,
+  ): List<NoteMentionDbo> =
+    mentions
+      .map { it.nodeId }
+      .distinct()
+      .map { mentionedNodeId ->
+        val node =
+          graphService.getNodeById(nodeId = mentionedNodeId, workspaceId = workspaceId)
+            ?: throw NoSuchMentionedNodeException(mentionedNodeId)
+        NoteMentionDbo(
+          mention =
+            NoteMention(
+              id = newNoteMentionId(),
+              note = noteId,
+              node = node.id,
+            ),
+          node = node,
+        )
+      }
 
   companion object {
     fun newNoteId() =
