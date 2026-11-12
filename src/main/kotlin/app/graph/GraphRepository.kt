@@ -61,7 +61,6 @@ class GraphRepository(
       .selectFrom(NODE)
       .where(NODE.ID.eq(nodeId))
       .and(NODE.WORKSPACE_ID.eq(workspaceId))
-      .and(NODE.DELETED_AT.isNull)
       .fetchOneInto(Node::class.java)
 
   fun findNodes(
@@ -70,11 +69,12 @@ class GraphRepository(
     searchQuery: String? = null,
     cursor: Cursor? = null,
     limit: Int,
+    includeDeleted: Boolean = false,
   ): List<Node> =
     dsl
       .selectFrom(NODE)
       .where(NODE.WORKSPACE_ID.eq(workspaceId))
-      .and(NODE.DELETED_AT.isNull)
+      .and(if (includeDeleted) DSL.noCondition() else NODE.DELETED_AT.isNull)
       .and(if (nodeTypeId != null) NODE.TYPE.eq(nodeTypeId) else DSL.noCondition())
       .and(if (searchQuery != null) lower(NODE.TITLE).likeIgnoreCase(lower("%$searchQuery%")) else DSL.noCondition())
       .and(cursor?.after(NODE.CREATED_AT, NODE.ID) ?: DSL.noCondition())
@@ -196,7 +196,25 @@ class GraphRepository(
       .where(EDGE.ID.eq(edgeId))
       .and(EDGE.WORKSPACE_ID.eq(workspaceId))
       .and(EDGE.DELETED_AT.isNull)
-      .fetchOneInto(Edge::class.java)
+      .and(
+        DSL.exists(
+          dsl
+            .selectOne()
+            .from(fromNodeAlias)
+            .where(fromNodeAlias.ID.eq(EDGE.FROM_NODE))
+            .and(fromNodeAlias.WORKSPACE_ID.eq(workspaceId))
+            .and(fromNodeAlias.DELETED_AT.isNull),
+        ),
+      ).and(
+        DSL.exists(
+          dsl
+            .selectOne()
+            .from(toNodeAlias)
+            .where(toNodeAlias.ID.eq(EDGE.TO_NODE))
+            .and(toNodeAlias.WORKSPACE_ID.eq(workspaceId))
+            .and(toNodeAlias.DELETED_AT.isNull),
+        ),
+      ).fetchOneInto(Edge::class.java)
 
   fun updateNodeType(
     nodeTypeId: ResourceId,
@@ -279,36 +297,32 @@ class GraphRepository(
       .execute() > 0
 
   /**
-   * Soft-deletes the node together with all of its (not yet deleted) edges.
+   * Soft-deletes the node.
    */
   fun softDeleteNode(
     nodeId: ResourceId,
     workspaceId: ResourceId,
     deletedAt: OffsetDateTime,
   ): Boolean =
-    dsl.transactionResult { config ->
-      val tx = DSL.using(config)
-      val deleted =
-        tx
-          .update(NODE)
-          .set(NODE.DELETED_AT, deletedAt)
-          .where(NODE.ID.eq(nodeId))
-          .and(NODE.WORKSPACE_ID.eq(workspaceId))
-          .and(NODE.DELETED_AT.isNull)
-          .execute() > 0
+    dsl
+      .update(NODE)
+      .set(NODE.DELETED_AT, deletedAt)
+      .where(NODE.ID.eq(nodeId))
+      .and(NODE.WORKSPACE_ID.eq(workspaceId))
+      .and(NODE.DELETED_AT.isNull)
+      .execute() > 0
 
-      if (deleted) {
-        tx
-          .update(EDGE)
-          .set(EDGE.DELETED_AT, deletedAt)
-          .where(EDGE.FROM_NODE.eq(nodeId).or(EDGE.TO_NODE.eq(nodeId)))
-          .and(EDGE.WORKSPACE_ID.eq(workspaceId))
-          .and(EDGE.DELETED_AT.isNull)
-          .execute()
-      }
-
-      deleted
-    }
+  fun restoreNode(
+    nodeId: ResourceId,
+    workspaceId: ResourceId,
+  ): Boolean =
+    dsl
+      .update(NODE)
+      .set(NODE.DELETED_AT, null as OffsetDateTime?)
+      .where(NODE.ID.eq(nodeId))
+      .and(NODE.WORKSPACE_ID.eq(workspaceId))
+      .and(NODE.DELETED_AT.isNotNull)
+      .execute() > 0
 
   fun softDeleteEdge(
     edgeId: ResourceId,

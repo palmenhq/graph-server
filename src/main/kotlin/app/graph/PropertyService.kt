@@ -117,6 +117,7 @@ class PropertyService(
     workspaceId: ResourceId,
   ): Pair<NodeProperty, NodePropertyValue> {
     val node = graphService.getNodeById(nodeId = nodeId, workspaceId = workspaceId) ?: throw NoSuchNodeException(nodeId)
+    if (node.deletedAt != null) throw NoSuchNodeException(nodeId)
     val property =
       propertyRepository.findPropertyById(propertyId = propertyId, workspaceId = workspaceId)
         ?: throw NoSuchPropertyException(propertyId)

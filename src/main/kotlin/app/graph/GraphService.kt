@@ -120,6 +120,7 @@ class GraphService(
     searchQuery: String? = null,
     cursor: Cursor? = null,
     pageSize: Int = DEFAULT_PAGE_SIZE,
+    includeDeleted: Boolean = false,
   ): Page<Node> =
     toPage(
       graphRepository.findNodes(
@@ -128,6 +129,7 @@ class GraphService(
         searchQuery = searchQuery,
         cursor = cursor,
         limit = pageSize + 1,
+        includeDeleted = includeDeleted,
       ),
       pageSize,
     ) { Cursor(createdAt = it.createdAt!!, id = it.id!!) }
@@ -286,6 +288,16 @@ class GraphService(
     if (!graphRepository.softDeleteNode(nodeId, workspaceId, OffsetDateTime.now())) {
       throw NoSuchNodeException(nodeId)
     }
+  }
+
+  fun restoreNode(
+    nodeId: ResourceId,
+    workspaceId: ResourceId,
+  ): Node {
+    if (!graphRepository.restoreNode(nodeId, workspaceId)) {
+      throw NoSuchNodeException(nodeId)
+    }
+    return graphRepository.findNodeById(nodeId, workspaceId) ?: throw NoSuchNodeException(nodeId)
   }
 
   fun deleteEdge(

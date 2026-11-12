@@ -2,6 +2,8 @@ package app.graph
 
 import TestHelp
 import app.graph.db.PreferredEdgeTypeDbo
+import app.graph.dtos.toFullDto
+import app.graph.dtos.toNeighborDto
 import app.graph.validation.NoSuchEdgeException
 import app.graph.validation.NoSuchEdgeTypeException
 import app.graph.validation.NoSuchNodeException
@@ -9,12 +11,14 @@ import app.graph.validation.NoSuchNodeTypeException
 import app.utils.http.Cursor
 import app.utils.http.InvalidCursorException
 import db.tables.pojos.Node
+import db.tables.references.EDGE
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import java.time.OffsetDateTime
+import kotlin.time.toKotlinInstant
 
 class GraphServiceTest {
   val graphService = GraphService(GraphRepository(TestHelp.dslContext), TestHelp.workspaceService)
@@ -377,7 +381,7 @@ class GraphServiceTest {
   }
 
   @Test
-  fun `soft-deletes node with its edges and excludes them from queries`() {
+  fun `soft-deletes node without deleting its edges and excludes them from queries`() {
     val workspace = TestHelp.createWorkspace("test")
     val nodeType = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
     val edgeType = graphService.createEdgeType(relationshipTitle = "knows", workspaceId = workspace.id!!)
@@ -389,12 +393,66 @@ class GraphServiceTest {
 
     graphService.deleteNode(bob.id!!, workspace.id!!)
 
-    assertNull(graphService.getNodeById(bob.id!!, workspace.id!!))
+    val deletedNode = graphService.getNodeById(bob.id!!, workspace.id!!)
+    assertNotNull(deletedNode)
+    assertNotNull(deletedNode?.deletedAt)
+    assertEquals(deletedNode?.deletedAt?.toInstant()?.toKotlinInstant(), deletedNode?.toNeighborDto()?.deletedAt)
+    assertEquals(
+      deletedNode?.deletedAt?.toInstant()?.toKotlinInstant(),
+      deletedNode?.toFullDto(emptyList(), emptyList(), emptyList())?.deletedAt,
+    )
     assertEquals(listOf(alice.id), graphService.getNodes(workspace.id!!).items.map { it.id })
     assertEquals(0, graphService.getNodes(workspace.id!!, searchQuery = "bob").items.size)
+    assertEquals(
+      setOf(alice.id, bob.id),
+      graphService
+        .getNodes(workspace.id!!, includeDeleted = true)
+        .items
+        .map { it.id }
+        .toSet(),
+    )
+    assertEquals(
+      listOf(bob.id),
+      graphService.getNodes(workspace.id!!, searchQuery = "bob", includeDeleted = true).items.map { it.id },
+    )
+    assertNull(
+      TestHelp.dslContext
+        .select(EDGE.DELETED_AT)
+        .from(EDGE)
+        .where(EDGE.ID.eq(edge.id))
+        .fetchOne(EDGE.DELETED_AT),
+    )
     assertEquals(0, graphService.getEdgeNodesFromNode(alice.id!!, workspace.id!!).size)
     assertNull(graphService.getEdgeById(edge.id!!, workspace.id!!))
     assertThrows(NoSuchNodeException::class.java) { graphService.deleteNode(bob.id!!, workspace.id!!) }
+  }
+
+  @Test
+  fun `restores node and reveals its active edges`() {
+    val workspace = TestHelp.createWorkspace("test")
+    val nodeType = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
+    val edgeType = graphService.createEdgeType(relationshipTitle = "knows", workspaceId = workspace.id!!)
+    val alice = graphService.createNode(nodeType.id!!, "Alice", workspaceId = workspace.id!!)
+    val bob = graphService.createNode(nodeType.id!!, "Bob", workspaceId = workspace.id!!)
+    val edge = graphService.createEdge(edgeType.id!!, alice.id!!, bob.id!!, workspaceId = workspace.id!!)
+
+    graphService.deleteNode(bob.id!!, workspace.id!!)
+
+    val restoredNode = graphService.restoreNode(bob.id!!, workspace.id!!)
+
+    assertNull(restoredNode.deletedAt)
+    assertEquals(
+      setOf(alice.id, bob.id),
+      graphService
+        .getNodes(workspace.id!!)
+        .items
+        .map { it.id }
+        .toSet(),
+    )
+    assertEquals(listOf(edge.id), graphService.getEdgeNodesFromNode(alice.id!!, workspace.id!!).map { it.edge.id })
+    assertNotNull(graphService.getEdgeById(edge.id!!, workspace.id!!))
+    assertThrows(NoSuchNodeException::class.java) { graphService.restoreNode(bob.id!!, workspace.id!!) }
+    assertThrows(NoSuchNodeException::class.java) { graphService.restoreNode("invalid", workspace.id!!) }
   }
 
   @Test

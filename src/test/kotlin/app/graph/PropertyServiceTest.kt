@@ -101,6 +101,20 @@ class PropertyServiceTest {
   }
 
   @Test
+  fun `does not set property values on soft-deleted nodes`() {
+    val workspace = TestHelp.createWorkspace("test")
+    val person = graphService.createNodeType(title = "Person", workspaceId = workspace.id!!)
+    val alice = graphService.createNode(person.id!!, "Alice", workspaceId = workspace.id!!)
+    val instagram = propertyService.createProperty(person.id!!, "instagramUrl", PropertyValueType.text, workspace.id!!)
+
+    graphService.deleteNode(alice.id!!, workspace.id!!)
+
+    assertThrows(NoSuchNodeException::class.java) {
+      propertyService.setPropertyValue(alice.id!!, instagram.id!!, "https://instagram.com/alice", workspace.id!!)
+    }
+  }
+
+  @Test
   fun `renames property of node type`() {
     val workspace = TestHelp.createWorkspace("test")
     val otherWorkspace = TestHelp.createWorkspace("other")

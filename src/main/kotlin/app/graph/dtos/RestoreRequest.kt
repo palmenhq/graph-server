@@ -4,6 +4,6 @@ import app.utils.ResourceId
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class DeleteRequest(
+data class RestoreRequest(
   val id: ResourceId,
 )

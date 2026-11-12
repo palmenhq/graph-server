@@ -6,8 +6,8 @@ import app.graph.dtos.CreateNodeRequest
 import app.graph.dtos.CreateNodeTypeRequest
 import app.graph.dtos.CreatePropertyRequest
 import app.graph.dtos.DeletePropertyRequest
-import app.graph.dtos.DeleteRequest
 import app.graph.dtos.RenamePropertyRequest
+import app.graph.dtos.RestoreRequest
 import app.graph.dtos.SetPreferredEdgeTypesRequest
 import app.graph.dtos.SetPropertyValueRequest
 import app.graph.dtos.UpdateEdgeRequest
@@ -36,7 +36,7 @@ import io.ktor.server.routing.route
 
 private fun Route.deleteRoute(delete: (id: String, workspaceId: String) -> Unit) {
   post("delete") {
-    val req = call.receive<DeleteRequest>()
+    val req = call.receive<RestoreRequest>()
     try {
       delete(req.id, call.workspaceId)
     } catch (e: ClientException) {
@@ -278,6 +278,7 @@ fun Route.graphRoutes(
         val nodeTypeId = call.queryParameters["nodeTypeId"]
         val searchQuery = call.queryParameters["search"]
         val pageSize = call.queryParameters["pageSize"]?.toIntOrNull() ?: DEFAULT_PAGE_SIZE
+        val includeDeleted = call.queryParameters["includeDeleted"]?.toBoolean() ?: false
         val page =
           try {
             graphService.getNodes(
@@ -286,6 +287,7 @@ fun Route.graphRoutes(
               searchQuery = searchQuery,
               cursor = call.queryParameters["cursor"]?.let { Cursor.decode(it) },
               pageSize = pageSize,
+              includeDeleted = includeDeleted,
             )
           } catch (e: ClientException) {
             return@get call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
@@ -345,6 +347,30 @@ fun Route.graphRoutes(
         val result =
           try {
             graphService.updateNode(nodeId = req.id, workspaceId = call.workspaceId, title = req.title)
+          } catch (e: ClientException) {
+            return@post call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
+          }
+
+        val edgeNodes = graphService.getEdgeNodesFromNode(id = req.id, workspaceId = call.workspaceId)
+        val neighbors =
+          edgeNodes
+            .map { if (it.fromNode.id == req.id) it.toNode else it.fromNode }
+            .distinctBy { it.id }
+
+        call.respond(
+          result.toFullDto(
+            edgeNodes,
+            neighbors,
+            propertyService.getPropertyValuesByNode(result, call.workspaceId),
+          ),
+        )
+      }
+
+      post("restore") {
+        val req = call.receive<RestoreRequest>()
+        val result =
+          try {
+            graphService.restoreNode(nodeId = req.id, workspaceId = call.workspaceId)
           } catch (e: ClientException) {
             return@post call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
           }
