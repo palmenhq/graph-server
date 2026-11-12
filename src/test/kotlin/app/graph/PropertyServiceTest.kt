@@ -95,7 +95,7 @@ class PropertyServiceTest {
     propertyService.createProperty(company.id!!, "website", PropertyValueType.text, workspace.id!!)
     val website2 = propertyService.createProperty(person.id!!, "website", PropertyValueType.text, workspace.id!!)
     assertEquals(
-      listOf(website2.id, instagram.id),
+      listOf(instagram.id, website2.id),
       propertyService.getPropertyValuesByNode(alice, workspace.id!!).map { it.second.propertyId },
     )
   }

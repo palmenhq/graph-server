@@ -348,6 +348,7 @@ class GraphRepository(
     .and(edgeAlias.DELETED_AT.isNull)
     .and(fromNodeAlias.DELETED_AT.isNull)
     .and(toNodeAlias.DELETED_AT.isNull)
+    .orderBy(edgeAlias.CREATED_AT, edgeAlias.ID)
 
   private fun Record.toNodeEdgeDbo() =
     NodeEdgeDbo(

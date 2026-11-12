@@ -122,7 +122,7 @@ class PropertyRepository(
       ).where(nodeProperty.NODE_TYPE_ID.eq(nodeTypeId))
       .and(nodeProperty.WORKSPACE_ID.eq(workspaceId))
       .and(nodeProperty.DELETED_AT.isNull)
-      .orderBy(nodeProperty.CREATED_AT.desc(), nodeProperty.ID)
+      .orderBy(nodeProperty.CREATED_AT, nodeProperty.ID)
       .map { r ->
         r.into(nodeProperty).into(NodeProperty::class.java) to
           NodePropertyValue(
