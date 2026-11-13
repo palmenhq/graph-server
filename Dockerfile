@@ -10,7 +10,18 @@ USER graph
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "/app/graph.jar"]
+# JVM flags for fast startup on the small CPU share of a serverless container:
+# - TieredStopAtLevel=1: only use the cheap C1 JIT compiler (C2 is expensive on a fraction of a core)
+# - UseSerialGC: no parallel GC threads competing for CPU
+# - MaxRAMPercentage: let the heap use most of the container's memory limit
+# - enable-native-access: silences Netty's native access warning
+ENTRYPOINT ["java", \
+  "-XX:TieredStopAtLevel=1", \
+  "-XX:+UseSerialGC", \
+  "-Xss512k", \
+  "-XX:MaxRAMPercentage=75", \
+  "--enable-native-access=ALL-UNNAMED", \
+  "-jar", "/app/graph.jar"]
 
 
 # Migrator: runs liquibase against the changelog in src/main/resources/db

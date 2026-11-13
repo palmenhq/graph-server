@@ -51,6 +51,7 @@ import org.jooq.DSLContext
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL
 import org.postgresql.Driver
+import java.time.Duration
 
 const val API_PORT = 8080
 
@@ -62,6 +63,11 @@ fun Application.main() {
         this.username = Environment.databaseUser
         this.password = Environment.databasePassword
         this.driverClassName = Driver::class.qualifiedName
+
+        // Let db go to sleep when unused
+        this.minimumIdle = 0
+        this.idleTimeout = Duration.ofSeconds(30).toMillis()
+        this.keepaliveTime = 0
       },
     )
   val dslContext = DSL.using(dataSource, SQLDialect.POSTGRES, Database.jooqSettings)
