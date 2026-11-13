@@ -26,25 +26,26 @@ data class Page<T>(
 class InvalidCursorException : ClientException("invalid_cursor", "Invalid cursor")
 
 /**
- * Opaque keyset cursor pointing at the last item of a page, for lists ordered by `created_at desc, id asc`.
+ * Opaque keyset cursor pointing at the last item of a page, for lists ordered by `<timestamp> desc, id asc`
+ * (e.g. `created_at` or `last_viewed_at`).
  */
 data class Cursor(
-  val createdAt: OffsetDateTime,
+  val timestamp: OffsetDateTime,
   val id: ResourceId,
 ) {
   fun encode(): String =
     Base64
       .getUrlEncoder()
       .withoutPadding()
-      .encodeToString("$createdAt|$id".toByteArray())
+      .encodeToString("$timestamp|$id".toByteArray())
 
   /**
    * Condition selecting the rows that come after this cursor.
    */
   fun after(
-    createdAtField: Field<OffsetDateTime?>,
+    timestampField: Field<OffsetDateTime?>,
     idField: Field<String?>,
-  ): Condition = createdAtField.lt(createdAt).or(createdAtField.eq(createdAt).and(idField.gt(id)))
+  ): Condition = timestampField.lt(timestamp).or(timestampField.eq(timestamp).and(idField.gt(id)))
 
   companion object {
     fun decode(value: String): Cursor {
@@ -57,7 +58,7 @@ data class Cursor(
       val separator = decoded.indexOf('|')
       if (separator < 0) throw InvalidCursorException()
 
-      val createdAt =
+      val timestamp =
         try {
           OffsetDateTime.parse(decoded.substring(0, separator))
         } catch (e: DateTimeParseException) {
@@ -66,7 +67,7 @@ data class Cursor(
       val id = decoded.substring(separator + 1)
       if (id.isEmpty()) throw InvalidCursorException()
 
-      return Cursor(createdAt = createdAt, id = id)
+      return Cursor(timestamp = timestamp, id = id)
     }
   }
 }

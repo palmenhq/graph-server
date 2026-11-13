@@ -18,7 +18,8 @@ data class Node(
     var title: String? = null,
     var workspaceId: String? = null,
     var createdAt: OffsetDateTime? = null,
-    var deletedAt: OffsetDateTime? = null
+    var deletedAt: OffsetDateTime? = null,
+    var lastViewedAt: OffsetDateTime? = null
 ): Serializable {
 
 
@@ -66,6 +67,12 @@ data class Node(
         }
         else if (this.deletedAt != o.deletedAt)
             return false
+        if (this.lastViewedAt == null) {
+            if (o.lastViewedAt != null)
+                return false
+        }
+        else if (this.lastViewedAt != o.lastViewedAt)
+            return false
         return true
     }
 
@@ -78,6 +85,7 @@ data class Node(
         result = prime * result + (if (this.workspaceId == null) 0 else this.workspaceId.hashCode())
         result = prime * result + (if (this.createdAt == null) 0 else this.createdAt.hashCode())
         result = prime * result + (if (this.deletedAt == null) 0 else this.deletedAt.hashCode())
+        result = prime * result + (if (this.lastViewedAt == null) 0 else this.lastViewedAt.hashCode())
         return result
     }
 
@@ -90,6 +98,7 @@ data class Node(
         sb.append(", ").append(workspaceId)
         sb.append(", ").append(createdAt)
         sb.append(", ").append(deletedAt)
+        sb.append(", ").append(lastViewedAt)
 
         sb.append(")")
         return sb.toString()

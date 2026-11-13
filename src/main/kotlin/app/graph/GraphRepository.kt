@@ -78,8 +78,8 @@ class GraphRepository(
       .and(if (includeDeleted) DSL.noCondition() else NODE.DELETED_AT.isNull)
       .and(if (nodeTypeId != null) NODE.TYPE.eq(nodeTypeId) else DSL.noCondition())
       .and(if (searchQuery != null) NodeSearch.matches(searchQuery) else DSL.noCondition())
-      .and(cursor?.after(NODE.CREATED_AT, NODE.ID) ?: DSL.noCondition())
-      .orderBy(NODE.CREATED_AT.desc(), NODE.ID)
+      .and(cursor?.after(NODE.LAST_VIEWED_AT, NODE.ID) ?: DSL.noCondition())
+      .orderBy(NODE.LAST_VIEWED_AT.desc(), NODE.ID)
       .limit(limit)
       .fetchInto(Node::class.java)
 
@@ -317,6 +317,18 @@ class GraphRepository(
       .where(NODE.ID.eq(nodeId))
       .and(NODE.WORKSPACE_ID.eq(workspaceId))
       .and(NODE.DELETED_AT.isNull)
+      .execute() > 0
+
+  fun updateNodeLastViewedAt(
+    nodeId: ResourceId,
+    workspaceId: ResourceId,
+    lastViewedAt: OffsetDateTime,
+  ): Boolean =
+    dsl
+      .update(NODE)
+      .set(NODE.LAST_VIEWED_AT, lastViewedAt)
+      .where(NODE.ID.eq(nodeId))
+      .and(NODE.WORKSPACE_ID.eq(workspaceId))
       .execute() > 0
 
   fun restoreNode(

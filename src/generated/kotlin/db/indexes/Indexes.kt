@@ -44,6 +44,7 @@ val NODE_TYPE_IDX: Index = Internal.createIndex(DSL.name("node_type_idx"), NodeT
 val NODE_TYPE_PREFERRED_EDGE_TYPE_EDGE_TYPE_ID_IDX: Index = Internal.createIndex(DSL.name("node_type_preferred_edge_type_edge_type_id_idx"), NodeTypePreferredEdgeTypeTable.NODE_TYPE_PREFERRED_EDGE_TYPE, arrayOf(NodeTypePreferredEdgeTypeTable.NODE_TYPE_PREFERRED_EDGE_TYPE.EDGE_TYPE_ID), false)
 val NODE_TYPE_WORKSPACE_ID_IDX: Index = Internal.createIndex(DSL.name("node_type_workspace_id_idx"), NodeTypeTable.NODE_TYPE, arrayOf(NodeTypeTable.NODE_TYPE.WORKSPACE_ID), false)
 val NODE_WORKSPACE_ID_IDX: Index = Internal.createIndex(DSL.name("node_workspace_id_idx"), NodeTable.NODE, arrayOf(NodeTable.NODE.WORKSPACE_ID), false)
+val NODE_WORKSPACE_LAST_VIEWED_AT_ID_IDX: Index = Internal.createIndex(DSL.name("node_workspace_last_viewed_at_id_idx"), NodeTable.NODE, arrayOf(NodeTable.NODE.WORKSPACE_ID, NodeTable.NODE.LAST_VIEWED_AT.desc(), NodeTable.NODE.ID), false)
 val NOTE_MENTION_NODE_IDX: Index = Internal.createIndex(DSL.name("note_mention_node_idx"), NoteMentionTable.NOTE_MENTION, arrayOf(NoteMentionTable.NOTE_MENTION.NODE), false)
 val NOTE_MENTION_NOTE_IDX: Index = Internal.createIndex(DSL.name("note_mention_note_idx"), NoteMentionTable.NOTE_MENTION, arrayOf(NoteMentionTable.NOTE_MENTION.NOTE), false)
 val NOTE_NODE_ID_IDX: Index = Internal.createIndex(DSL.name("note_node_id_idx"), NoteTable.NOTE, arrayOf(NoteTable.NOTE.NODE_ID), false)

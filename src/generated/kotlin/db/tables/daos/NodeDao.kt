@@ -99,4 +99,15 @@ open class NodeDao(configuration: Configuration?) : DAOImpl<NodeRecord, Node, St
      * Fetch records that have <code>deleted_at IN (values)</code>
      */
     fun fetchByDeletedAt(vararg values: OffsetDateTime): List<Node> = fetch(NodeTable.NODE.DELETED_AT, *values)
+
+    /**
+     * Fetch records that have <code>last_viewed_at BETWEEN lowerInclusive AND
+     * upperInclusive</code>
+     */
+    fun fetchRangeOfLastViewedAt(lowerInclusive: OffsetDateTime?, upperInclusive: OffsetDateTime?): List<Node> = fetchRange(NodeTable.NODE.LAST_VIEWED_AT, lowerInclusive, upperInclusive)
+
+    /**
+     * Fetch records that have <code>last_viewed_at IN (values)</code>
+     */
+    fun fetchByLastViewedAt(vararg values: OffsetDateTime): List<Node> = fetch(NodeTable.NODE.LAST_VIEWED_AT, *values)
 }

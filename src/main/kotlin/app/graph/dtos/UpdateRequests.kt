@@ -29,6 +29,11 @@ data class UpdateNodeRequest(
 )
 
 @Serializable
+data class MarkNodeViewedRequest(
+  val id: ResourceId,
+)
+
+@Serializable
 data class UpdateEdgeRequest(
   val id: ResourceId,
   val title: String? = null,

@@ -68,13 +68,15 @@ class GraphService(
     val workspace = workspaceService.getById(workspaceId) ?: throw NoSuchWorkspaceException()
     graphRepository.findNodeTypeById(nodeTypeId = nodeTypeId, workspaceId = workspace.id!!)
       ?: throw NoSuchNodeTypeException(nodeTypeId)
+    val now = OffsetDateTime.now()
     val node =
       Node(
         id = newNodeId(),
         type = nodeTypeId,
         title = title,
         workspaceId = workspace.id!!,
-        createdAt = OffsetDateTime.now(),
+        createdAt = now,
+        lastViewedAt = now,
       )
     graphRepository.createNode(node)
     return node
@@ -132,7 +134,7 @@ class GraphService(
         includeDeleted = includeDeleted,
       ),
       pageSize,
-    ) { Cursor(createdAt = it.createdAt!!, id = it.id!!) }
+    ) { Cursor(timestamp = it.lastViewedAt!!, id = it.id!!) }
 
   fun getNodeTypeById(
     nodeTypeId: ResourceId,
@@ -288,6 +290,16 @@ class GraphService(
     if (!graphRepository.softDeleteNode(nodeId, workspaceId, OffsetDateTime.now())) {
       throw NoSuchNodeException(nodeId)
     }
+  }
+
+  fun markNodeViewed(
+    nodeId: ResourceId,
+    workspaceId: ResourceId,
+  ): Node {
+    if (!graphRepository.updateNodeLastViewedAt(nodeId, workspaceId, OffsetDateTime.now())) {
+      throw NoSuchNodeException(nodeId)
+    }
+    return graphRepository.findNodeById(nodeId, workspaceId) ?: throw NoSuchNodeException(nodeId)
   }
 
   fun restoreNode(

@@ -13,6 +13,9 @@ sealed interface NodeDto {
   val id: ResourceId
   val title: String
   val nodeTypeId: ResourceId
+  val createdAt: Instant
+  val lastViewedAt: Instant
+
   val deletedAt: Instant?
 }
 
@@ -21,6 +24,8 @@ data class FullNodeDto(
   override val id: ResourceId,
   override val title: String,
   override val nodeTypeId: ResourceId,
+  override val createdAt: Instant,
+  override val lastViewedAt: Instant,
   override val deletedAt: Instant?,
   val edges: List<EdgeDto>,
   val neighbors: List<NeighborNodeDto>,
@@ -32,6 +37,8 @@ data class NeighborNodeDto(
   override val id: ResourceId,
   override val title: String,
   override val nodeTypeId: ResourceId,
+  override val createdAt: Instant,
+  override val lastViewedAt: Instant,
   override val deletedAt: Instant?,
 ) : NodeDto
 
@@ -44,6 +51,8 @@ fun Node.toFullDto(
     id = id!!,
     title = title!!,
     nodeTypeId = type!!,
+    createdAt = createdAt!!.toInstant().toKotlinInstant(),
+    lastViewedAt = lastViewedAt!!.toInstant().toKotlinInstant(),
     deletedAt = deletedAt?.toInstant()?.toKotlinInstant(),
     edges = edges.map { it.toEdgeDto() },
     neighbors = neighbors.map { it.toNeighborDto() },
@@ -55,5 +64,7 @@ fun Node.toNeighborDto(): NeighborNodeDto =
     id = id!!,
     title = title!!,
     nodeTypeId = type!!,
+    createdAt = createdAt!!.toInstant().toKotlinInstant(),
+    lastViewedAt = lastViewedAt!!.toInstant().toKotlinInstant(),
     deletedAt = deletedAt?.toInstant()?.toKotlinInstant(),
   )

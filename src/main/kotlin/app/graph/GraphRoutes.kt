@@ -6,6 +6,7 @@ import app.graph.dtos.CreateNodeRequest
 import app.graph.dtos.CreateNodeTypeRequest
 import app.graph.dtos.CreatePropertyRequest
 import app.graph.dtos.DeletePropertyRequest
+import app.graph.dtos.MarkNodeViewedRequest
 import app.graph.dtos.RenamePropertyRequest
 import app.graph.dtos.RestoreRequest
 import app.graph.dtos.SetPreferredEdgeTypesRequest
@@ -364,6 +365,17 @@ fun Route.graphRoutes(
             propertyService.getPropertyValuesByNode(result, call.workspaceId),
           ),
         )
+      }
+
+      post("markViewed") {
+        val req = call.receive<MarkNodeViewedRequest>()
+        try {
+          graphService.markNodeViewed(nodeId = req.id, workspaceId = call.workspaceId)
+        } catch (e: ClientException) {
+          return@post call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
+        }
+
+        call.respond(HttpStatusCode.NoContent)
       }
 
       post("restore") {

@@ -9,6 +9,7 @@ import db.indexes.NODE_CREATE_AT_IDX
 import db.indexes.NODE_TITLE_SEARCH_TRGM
 import db.indexes.NODE_TYPE_IDX
 import db.indexes.NODE_WORKSPACE_ID_IDX
+import db.indexes.NODE_WORKSPACE_LAST_VIEWED_AT_ID_IDX
 import db.keys.EDGE__EDGE_FROM_NODE_FKEY
 import db.keys.EDGE__EDGE_TO_NODE_FKEY
 import db.keys.NODE_PKEY
@@ -122,6 +123,11 @@ open class NodeTable(
      */
     val DELETED_AT: TableField<NodeRecord, OffsetDateTime?> = createField(DSL.name("deleted_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "")
 
+    /**
+     * The column <code>public_schema.node.last_viewed_at</code>.
+     */
+    val LAST_VIEWED_AT: TableField<NodeRecord, OffsetDateTime?> = createField(DSL.name("last_viewed_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false), this, "")
+
     private constructor(alias: Name, aliased: Table<NodeRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<NodeRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<NodeRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
@@ -154,7 +160,7 @@ open class NodeTable(
         override fun `as`(alias: Table<*>): NodePath = NodePath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else PublicSchema.PUBLIC_SCHEMA
-    override fun getIndexes(): List<Index> = listOf(NODE_CREATE_AT_IDX, NODE_TITLE_SEARCH_TRGM, NODE_TYPE_IDX, NODE_WORKSPACE_ID_IDX)
+    override fun getIndexes(): List<Index> = listOf(NODE_CREATE_AT_IDX, NODE_TITLE_SEARCH_TRGM, NODE_TYPE_IDX, NODE_WORKSPACE_ID_IDX, NODE_WORKSPACE_LAST_VIEWED_AT_ID_IDX)
     override fun getPrimaryKey(): UniqueKey<NodeRecord> = NODE_PKEY
     override fun getReferences(): List<ForeignKey<NodeRecord, *>> = listOf(NODE__NODE_TYPE_FKEY, NODE__NODE_WORKSPACE_ID_FKEY)
 

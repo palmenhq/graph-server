@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.OffsetDateTime
 import kotlin.time.toKotlinInstant
@@ -537,17 +538,24 @@ class GraphServiceTest {
   }
 
   @Test
-  fun `paginates nodes with identical creation times by id`() {
+  fun `paginates nodes with identical last viewed times by id`() {
     val workspace = TestHelp.createWorkspace("test")
     val contact = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
-    val createdAt = OffsetDateTime.parse("2026-01-01T00:00:00Z")
+    val timestamp = OffsetDateTime.parse("2026-01-01T00:00:00Z")
     val repository = GraphRepository(TestHelp.dslContext)
     val ids =
       (1..5)
         .map { GraphService.newNodeId() }
         .onEach {
           repository.createNode(
-            Node(id = it, type = contact.id, title = it, workspaceId = workspace.id, createdAt = createdAt),
+            Node(
+              id = it,
+              type = contact.id,
+              title = it,
+              workspaceId = workspace.id,
+              createdAt = timestamp,
+              lastViewedAt = timestamp,
+            ),
           )
         }.sorted()
 
@@ -560,6 +568,35 @@ class GraphServiceTest {
     } while (cursor != null)
 
     assertEquals(ids, collected)
+  }
+
+  @Test
+  fun `marks node as viewed and lists most recently viewed nodes first`() {
+    val workspace = TestHelp.createWorkspace("test")
+    val contact = graphService.createNodeType(title = "Contact", workspaceId = workspace.id!!)
+    val nodes = (1..5).map { graphService.createNode(contact.id!!, "Node $it", workspaceId = workspace.id!!) }
+    assertEquals(nodes[0].createdAt, nodes[0].lastViewedAt)
+
+    val viewed = graphService.markNodeViewed(nodes[1].id!!, workspace.id!!)
+    assertEquals(nodes[1].createdAt, viewed.createdAt)
+    assertTrue(viewed.lastViewedAt!!.isAfter(nodes[4].lastViewedAt))
+    graphService.markNodeViewed(nodes[3].id!!, workspace.id!!)
+
+    val first = graphService.getNodes(workspace.id!!, pageSize = 2)
+    val second = graphService.getNodes(workspace.id!!, cursor = first.nextCursor, pageSize = 2)
+    val third = graphService.getNodes(workspace.id!!, cursor = second.nextCursor, pageSize = 2)
+
+    assertEquals(listOf(nodes[3].id, nodes[1].id), first.items.map { it.id })
+    assertEquals(listOf(nodes[4].id, nodes[2].id), second.items.map { it.id })
+    assertEquals(listOf(nodes[0].id), third.items.map { it.id })
+    val storedLastViewedAt = graphService.getNodeById(nodes[3].id!!, workspace.id!!)?.lastViewedAt
+    val dto = first.items.first().toNeighborDto()
+    assertEquals(storedLastViewedAt?.toInstant()?.toKotlinInstant(), dto.lastViewedAt)
+
+    assertThrows(NoSuchNodeException::class.java) { graphService.markNodeViewed("invalid", workspace.id!!) }
+    assertThrows(NoSuchNodeException::class.java) {
+      graphService.markNodeViewed(nodes[0].id!!, TestHelp.createWorkspace("other").id!!)
+    }
   }
 
   @Test
