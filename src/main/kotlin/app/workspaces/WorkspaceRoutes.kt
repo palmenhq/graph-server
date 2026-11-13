@@ -2,9 +2,12 @@ package app.workspaces
 
 import app.auth.userSession
 import app.utils.http.ClientError
+import app.utils.http.ClientException
 import app.utils.http.ListResponse
 import app.utils.http.userId
 import app.workspaces.dtos.CreateWorkspaceRequest
+import app.workspaces.dtos.DeleteWorkspaceRequest
+import app.workspaces.dtos.RenameWorkspaceRequest
 import app.workspaces.dtos.toDto
 import app.workspaces.validation.NoSuchWorkspaceException
 import io.ktor.http.HttpStatusCode
@@ -71,6 +74,29 @@ fun Route.workspaceRoutes(workspaceService: WorkspaceService) {
         )
 
       call.respond(workspace.toDto())
+    }
+
+    post("rename") {
+      val req = call.receive<RenameWorkspaceRequest>()
+      val result =
+        try {
+          workspaceService.renameWorkspace(id = req.id, name = req.name, userId = call.userId)
+        } catch (e: ClientException) {
+          return@post call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
+        }
+
+      call.respond(result.toDto())
+    }
+
+    post("delete") {
+      val req = call.receive<DeleteWorkspaceRequest>()
+      try {
+        workspaceService.deleteWorkspace(id = req.id, userId = call.userId)
+      } catch (e: ClientException) {
+        return@post call.respond(HttpStatusCode.UnprocessableEntity, e.toError())
+      }
+
+      call.respond(HttpStatusCode.NoContent)
     }
   }
 }

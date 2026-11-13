@@ -31,6 +31,10 @@ open class WorkspaceRecord() : UpdatableRecordImpl<WorkspaceRecord>(WorkspaceTab
         set(value): Unit = set(2, value)
         get(): OffsetDateTime? = get(2) as OffsetDateTime?
 
+    open var deletedAt: OffsetDateTime?
+        set(value): Unit = set(3, value)
+        get(): OffsetDateTime? = get(3) as OffsetDateTime?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -40,10 +44,11 @@ open class WorkspaceRecord() : UpdatableRecordImpl<WorkspaceRecord>(WorkspaceTab
     /**
      * Create a detached, initialised WorkspaceRecord
      */
-    constructor(id: String? = null, name: String? = null, createdAt: OffsetDateTime? = null): this() {
+    constructor(id: String? = null, name: String? = null, createdAt: OffsetDateTime? = null, deletedAt: OffsetDateTime? = null): this() {
         this.id = id
         this.name = name
         this.createdAt = createdAt
+        this.deletedAt = deletedAt
         resetTouchedOnNotNull()
     }
 
@@ -55,6 +60,7 @@ open class WorkspaceRecord() : UpdatableRecordImpl<WorkspaceRecord>(WorkspaceTab
             this.id = value.id
             this.name = value.name
             this.createdAt = value.createdAt
+            this.deletedAt = value.deletedAt
             resetTouchedOnNotNull()
         }
     }

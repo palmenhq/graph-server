@@ -15,7 +15,8 @@ import java.time.OffsetDateTime
 data class Workspace(
     var id: String? = null,
     var name: String? = null,
-    var createdAt: OffsetDateTime? = null
+    var createdAt: OffsetDateTime? = null,
+    var deletedAt: OffsetDateTime? = null
 ): Serializable {
 
 
@@ -45,6 +46,12 @@ data class Workspace(
         }
         else if (this.createdAt != o.createdAt)
             return false
+        if (this.deletedAt == null) {
+            if (o.deletedAt != null)
+                return false
+        }
+        else if (this.deletedAt != o.deletedAt)
+            return false
         return true
     }
 
@@ -54,6 +61,7 @@ data class Workspace(
         result = prime * result + (if (this.id == null) 0 else this.id.hashCode())
         result = prime * result + (if (this.name == null) 0 else this.name.hashCode())
         result = prime * result + (if (this.createdAt == null) 0 else this.createdAt.hashCode())
+        result = prime * result + (if (this.deletedAt == null) 0 else this.deletedAt.hashCode())
         return result
     }
 
@@ -63,6 +71,7 @@ data class Workspace(
         sb.append(id)
         sb.append(", ").append(name)
         sb.append(", ").append(createdAt)
+        sb.append(", ").append(deletedAt)
 
         sb.append(")")
         return sb.toString()

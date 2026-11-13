@@ -1,6 +1,7 @@
 package app.workspaces
 
 import app.utils.ResourceId
+import app.workspaces.validation.NoSuchWorkspaceException
 import db.tables.pojos.Workspace
 import java.time.OffsetDateTime
 
@@ -38,4 +39,31 @@ class WorkspaceService(
     workspaceId: ResourceId,
     userId: ResourceId,
   ): Boolean = workspaceRepository.isMember(workspaceId = workspaceId, userId = userId)
+
+  fun renameWorkspace(
+    id: ResourceId,
+    name: String,
+    userId: ResourceId,
+  ): Workspace {
+    if (!hasAccess(workspaceId = id, userId = userId)) {
+      throw NoSuchWorkspaceException()
+    }
+    if (workspaceRepository.updateName(id = id, name = name) == 0) {
+      throw NoSuchWorkspaceException()
+    }
+
+    return workspaceRepository.findById(id) ?: throw NoSuchWorkspaceException()
+  }
+
+  fun deleteWorkspace(
+    id: ResourceId,
+    userId: ResourceId,
+  ) {
+    if (!hasAccess(workspaceId = id, userId = userId)) {
+      throw NoSuchWorkspaceException()
+    }
+    if (workspaceRepository.softDelete(id = id, deletedAt = OffsetDateTime.now()) == 0) {
+      throw NoSuchWorkspaceException()
+    }
+  }
 }

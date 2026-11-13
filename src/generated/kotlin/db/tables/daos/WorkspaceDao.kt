@@ -66,4 +66,15 @@ open class WorkspaceDao(configuration: Configuration?) : DAOImpl<WorkspaceRecord
      * Fetch records that have <code>created_at IN (values)</code>
      */
     fun fetchByCreatedAt(vararg values: OffsetDateTime): List<Workspace> = fetch(WorkspaceTable.WORKSPACE.CREATED_AT, *values)
+
+    /**
+     * Fetch records that have <code>deleted_at BETWEEN lowerInclusive AND
+     * upperInclusive</code>
+     */
+    fun fetchRangeOfDeletedAt(lowerInclusive: OffsetDateTime?, upperInclusive: OffsetDateTime?): List<Workspace> = fetchRange(WorkspaceTable.WORKSPACE.DELETED_AT, lowerInclusive, upperInclusive)
+
+    /**
+     * Fetch records that have <code>deleted_at IN (values)</code>
+     */
+    fun fetchByDeletedAt(vararg values: OffsetDateTime): List<Workspace> = fetch(WorkspaceTable.WORKSPACE.DELETED_AT, *values)
 }

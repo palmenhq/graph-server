@@ -1,10 +1,15 @@
 package app.workspaces
 
+import TestHelp
+import app.workspaces.validation.NoSuchWorkspaceException
+import db.tables.references.WORKSPACE
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 class WorkspaceServiceTest {
   private val service = WorkspaceService(WorkspaceRepository(TestHelp.dslContext))
@@ -34,5 +39,37 @@ class WorkspaceServiceTest {
 
     assertEquals(listOf(workspace.id), service.getAllForUser(owner.id!!).map { it.id })
     assertEquals(listOf(othersWorkspace.id), service.getAllForUser(other.id!!).map { it.id })
+  }
+
+  @Test
+  fun `renames workspaces`() {
+    val owner = TestHelp.createUser()
+    val other = TestHelp.createUser()
+    val workspace = service.createWorkspace("old", ownerId = owner.id!!)
+
+    val renamed = service.renameWorkspace(workspace.id!!, name = "new", userId = owner.id!!)
+
+    assertEquals("new", renamed.name)
+    assertEquals("new", service.getById(workspace.id!!)!!.name)
+    assertThrows<NoSuchWorkspaceException> { service.renameWorkspace(workspace.id!!, name = "x", userId = other.id!!) }
+  }
+
+  @Test
+  fun `soft deleted workspaces are not accessible`() {
+    val owner = TestHelp.createUser()
+    val other = TestHelp.createUser()
+    val workspace = service.createWorkspace("doomed", ownerId = owner.id!!)
+
+    assertThrows<NoSuchWorkspaceException> { service.deleteWorkspace(workspace.id!!, userId = other.id!!) }
+    service.deleteWorkspace(workspace.id!!, userId = owner.id!!)
+
+    assertFalse(service.hasAccess(workspace.id!!, owner.id!!))
+    assertNull(service.getById(workspace.id!!))
+    assertNull(service.getByIdForUser(workspace.id!!, userId = owner.id!!))
+    assertEquals(emptyList<String>(), service.getAllForUser(owner.id!!).map { it.id })
+    assertNotNull(TestHelp.dslContext.fetchOne(WORKSPACE, WORKSPACE.ID.eq(workspace.id))!!.deletedAt)
+
+    assertThrows<NoSuchWorkspaceException> { service.renameWorkspace(workspace.id!!, name = "x", userId = owner.id!!) }
+    assertThrows<NoSuchWorkspaceException> { service.deleteWorkspace(workspace.id!!, userId = owner.id!!) }
   }
 }

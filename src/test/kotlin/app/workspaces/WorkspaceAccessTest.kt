@@ -117,4 +117,73 @@ class WorkspaceAccessTest {
       val anonymous = client.get("/api/workspaces/$workspace/graph/nodeTypes/getAll")
       assertEquals(HttpStatusCode.Unauthorized, anonymous.status)
     }
+
+  @Test
+  fun `workspaces can be renamed by members only`() =
+    TestHelp.testServer {
+      val alice = login()
+      val bob = login()
+      val workspace = createWorkspace(alice, "alice")
+
+      val rename: suspend (String, String) -> HttpResponse = { token, name ->
+        client.post("/api/workspaces/rename") {
+          header(SESSION_HEADER, token)
+          contentType(ContentType.Application.Json)
+          setBody("""{"id":"$workspace","name":"$name"}""")
+        }
+      }
+
+      val renamed = rename(alice, "renamed")
+      assertEquals(HttpStatusCode.OK, renamed.status)
+      assertEquals("renamed", renamed.field("name")())
+
+      val foreign = rename(bob, "hijacked")
+      assertEquals(HttpStatusCode.UnprocessableEntity, foreign.status)
+      assertTrue(foreign.bodyAsText().contains("no_such_workspace"))
+
+      val found = client.get("/api/workspaces/getById?id=$workspace") { header(SESSION_HEADER, alice) }
+      assertEquals("renamed", found.field("name")())
+    }
+
+  @Test
+  fun `deleted workspaces are no longer accessible`() =
+    TestHelp.testServer {
+      val alice = login()
+      val bob = login()
+      val workspace = createWorkspace(alice, "alice")
+
+      val delete: suspend (String) -> HttpResponse = { token ->
+        client.post("/api/workspaces/delete") {
+          header(SESSION_HEADER, token)
+          contentType(ContentType.Application.Json)
+          setBody("""{"id":"$workspace"}""")
+        }
+      }
+
+      val foreign = delete(bob)
+      assertEquals(HttpStatusCode.UnprocessableEntity, foreign.status)
+      assertTrue(foreign.bodyAsText().contains("no_such_workspace"))
+
+      assertEquals(HttpStatusCode.NoContent, delete(alice).status)
+
+      assertEquals(emptyList<String>(), workspaceIds(alice))
+
+      val byId = client.get("/api/workspaces/getById?id=$workspace") { header(SESSION_HEADER, alice) }
+      assertEquals(HttpStatusCode.UnprocessableEntity, byId.status)
+
+      val scoped = client.get("/api/workspaces/$workspace/graph/nodeTypes/getAll") { header(SESSION_HEADER, alice) }
+      assertEquals(HttpStatusCode.UnprocessableEntity, scoped.status)
+      assertTrue(scoped.bodyAsText().contains("no_such_workspace"))
+
+      val rename =
+        client.post("/api/workspaces/rename") {
+          header(SESSION_HEADER, alice)
+          contentType(ContentType.Application.Json)
+          setBody("""{"id":"$workspace","name":"again"}""")
+        }
+      assertEquals(HttpStatusCode.UnprocessableEntity, rename.status)
+
+      // Deleting twice behaves like deleting a missing workspace
+      assertEquals(HttpStatusCode.UnprocessableEntity, delete(alice).status)
+    }
 }

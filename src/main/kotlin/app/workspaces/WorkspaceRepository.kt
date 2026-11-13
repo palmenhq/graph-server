@@ -34,7 +34,12 @@ class WorkspaceRepository(
     }
   }
 
-  fun findById(id: ResourceId): Workspace? = dao.findById(id)
+  fun findById(id: ResourceId): Workspace? =
+    dsl
+      .selectFrom(WORKSPACE)
+      .where(WORKSPACE.ID.eq(id))
+      .and(WORKSPACE.DELETED_AT.isNull)
+      .fetchOneInto(Workspace::class.java)
 
   fun findByIdForMember(
     id: ResourceId,
@@ -47,6 +52,7 @@ class WorkspaceRepository(
       .on(WORKSPACE_MEMBER.WORKSPACE_ID.eq(WORKSPACE.ID))
       .where(WORKSPACE.ID.eq(id))
       .and(WORKSPACE_MEMBER.USER_ID.eq(userId))
+      .and(WORKSPACE.DELETED_AT.isNull)
       .fetchOneInto(Workspace::class.java)
 
   fun findAllForMember(userId: ResourceId): List<Workspace> =
@@ -56,6 +62,7 @@ class WorkspaceRepository(
       .join(WORKSPACE_MEMBER)
       .on(WORKSPACE_MEMBER.WORKSPACE_ID.eq(WORKSPACE.ID))
       .where(WORKSPACE_MEMBER.USER_ID.eq(userId))
+      .and(WORKSPACE.DELETED_AT.isNull)
       .orderBy(WORKSPACE.CREATED_AT, WORKSPACE.ID)
       .fetchInto(Workspace::class.java)
 
@@ -64,9 +71,43 @@ class WorkspaceRepository(
     userId: ResourceId,
   ): Boolean =
     dsl.fetchExists(
-      WORKSPACE_MEMBER,
-      WORKSPACE_MEMBER.WORKSPACE_ID.eq(workspaceId).and(WORKSPACE_MEMBER.USER_ID.eq(userId)),
+      dsl
+        .selectOne()
+        .from(WORKSPACE_MEMBER)
+        .join(WORKSPACE)
+        .on(WORKSPACE.ID.eq(WORKSPACE_MEMBER.WORKSPACE_ID))
+        .where(WORKSPACE_MEMBER.WORKSPACE_ID.eq(workspaceId))
+        .and(WORKSPACE_MEMBER.USER_ID.eq(userId))
+        .and(WORKSPACE.DELETED_AT.isNull),
     )
+
+  /**
+   * @return the number of updated rows, 0 if the workspace doesn't exist or is deleted
+   */
+  fun updateName(
+    id: ResourceId,
+    name: String,
+  ): Int =
+    dsl
+      .update(WORKSPACE)
+      .set(WORKSPACE.NAME, name)
+      .where(WORKSPACE.ID.eq(id))
+      .and(WORKSPACE.DELETED_AT.isNull)
+      .execute()
+
+  /**
+   * @return the number of updated rows, 0 if the workspace doesn't exist or is already deleted
+   */
+  fun softDelete(
+    id: ResourceId,
+    deletedAt: OffsetDateTime,
+  ): Int =
+    dsl
+      .update(WORKSPACE)
+      .set(WORKSPACE.DELETED_AT, deletedAt)
+      .where(WORKSPACE.ID.eq(id))
+      .and(WORKSPACE.DELETED_AT.isNull)
+      .execute()
 
   companion object {
     fun newResourceId(): ResourceId =

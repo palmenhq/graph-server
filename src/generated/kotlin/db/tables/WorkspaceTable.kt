@@ -106,6 +106,11 @@ open class WorkspaceTable(
      */
     val CREATED_AT: TableField<WorkspaceRecord, OffsetDateTime?> = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false), this, "")
 
+    /**
+     * The column <code>public_schema.workspace.deleted_at</code>.
+     */
+    val DELETED_AT: TableField<WorkspaceRecord, OffsetDateTime?> = createField(DSL.name("deleted_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "")
+
     private constructor(alias: Name, aliased: Table<WorkspaceRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<WorkspaceRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<WorkspaceRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
