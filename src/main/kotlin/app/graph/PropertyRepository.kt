@@ -7,6 +7,7 @@ import db.tables.pojos.NodePropertyValue
 import db.tables.references.NODE_PROPERTY
 import db.tables.references.NODE_PROPERTY_VALUE
 import org.jooq.DSLContext
+import org.jooq.impl.DSL
 import java.time.OffsetDateTime
 
 class PropertyRepository(
@@ -83,20 +84,24 @@ class PropertyRepository(
    * Inserts the value, or replaces the existing value of the property on the node.
    */
   fun upsertPropertyValue(value: NodePropertyValue) {
-    dsl
-      .insertInto(NODE_PROPERTY_VALUE)
-      .set(NODE_PROPERTY_VALUE.NODE_ID, value.nodeId)
-      .set(NODE_PROPERTY_VALUE.PROPERTY_ID, value.propertyId)
-      .set(NODE_PROPERTY_VALUE.VALUE_TYPE, value.valueType)
-      .set(NODE_PROPERTY_VALUE.VALUE, value.value)
-      .set(NODE_PROPERTY_VALUE.UPDATED_AT, value.updatedAt)
-      .set(NODE_PROPERTY_VALUE.WORKSPACE_ID, value.workspaceId)
-      .onConflict(NODE_PROPERTY_VALUE.NODE_ID, NODE_PROPERTY_VALUE.PROPERTY_ID)
-      .doUpdate()
-      .set(NODE_PROPERTY_VALUE.VALUE_TYPE, value.valueType)
-      .set(NODE_PROPERTY_VALUE.VALUE, value.value)
-      .set(NODE_PROPERTY_VALUE.UPDATED_AT, value.updatedAt)
-      .execute()
+    dsl.transaction { configuration ->
+      val tx = DSL.using(configuration)
+      tx
+        .insertInto(NODE_PROPERTY_VALUE)
+        .set(NODE_PROPERTY_VALUE.NODE_ID, value.nodeId)
+        .set(NODE_PROPERTY_VALUE.PROPERTY_ID, value.propertyId)
+        .set(NODE_PROPERTY_VALUE.VALUE_TYPE, value.valueType)
+        .set(NODE_PROPERTY_VALUE.VALUE, value.value)
+        .set(NODE_PROPERTY_VALUE.UPDATED_AT, value.updatedAt)
+        .set(NODE_PROPERTY_VALUE.WORKSPACE_ID, value.workspaceId)
+        .onConflict(NODE_PROPERTY_VALUE.NODE_ID, NODE_PROPERTY_VALUE.PROPERTY_ID)
+        .doUpdate()
+        .set(NODE_PROPERTY_VALUE.VALUE_TYPE, value.valueType)
+        .set(NODE_PROPERTY_VALUE.VALUE, value.value)
+        .set(NODE_PROPERTY_VALUE.UPDATED_AT, value.updatedAt)
+        .execute()
+      NodeSearch.refreshSearchVector(tx, value.nodeId!!)
+    }
   }
 
   /**

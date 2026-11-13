@@ -21,12 +21,10 @@ import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.Record
 import org.jooq.impl.DSL
-import org.jooq.impl.DSL.lower
 import java.time.OffsetDateTime
 
 class GraphRepository(
   private val dsl: DSLContext,
-  private val nodeDao: NodeDao = NodeDao(dsl.configuration()),
   private val nodeTypeDao: NodeTypeDao = NodeTypeDao(dsl.configuration()),
   private val edgeDao: EdgeDao = EdgeDao(dsl.configuration()),
   private val edgeTypeDao: EdgeTypeDao = EdgeTypeDao(dsl.configuration()),
@@ -46,7 +44,10 @@ class GraphRepository(
   }
 
   fun createNode(node: Node) {
-    nodeDao.insert(node)
+    dsl.transaction { configuration ->
+      NodeDao(configuration).insert(node)
+      NodeSearch.refreshSearchVector(DSL.using(configuration), node.id!!)
+    }
   }
 
   fun createEdge(edge: Edge) {
@@ -76,7 +77,7 @@ class GraphRepository(
       .where(NODE.WORKSPACE_ID.eq(workspaceId))
       .and(if (includeDeleted) DSL.noCondition() else NODE.DELETED_AT.isNull)
       .and(if (nodeTypeId != null) NODE.TYPE.eq(nodeTypeId) else DSL.noCondition())
-      .and(if (searchQuery != null) lower(NODE.TITLE).likeIgnoreCase(lower("%$searchQuery%")) else DSL.noCondition())
+      .and(if (searchQuery != null) NodeSearch.matches(searchQuery) else DSL.noCondition())
       .and(cursor?.after(NODE.CREATED_AT, NODE.ID) ?: DSL.noCondition())
       .orderBy(NODE.CREATED_AT.desc(), NODE.ID)
       .limit(limit)
@@ -249,13 +250,19 @@ class GraphRepository(
     workspaceId: ResourceId,
     title: String,
   ): Boolean =
-    dsl
-      .update(NODE)
-      .set(NODE.TITLE, title)
-      .where(NODE.ID.eq(nodeId))
-      .and(NODE.WORKSPACE_ID.eq(workspaceId))
-      .and(NODE.DELETED_AT.isNull)
-      .execute() > 0
+    dsl.transactionResult { configuration ->
+      val tx = DSL.using(configuration)
+      val updated =
+        tx
+          .update(NODE)
+          .set(NODE.TITLE, title)
+          .where(NODE.ID.eq(nodeId))
+          .and(NODE.WORKSPACE_ID.eq(workspaceId))
+          .and(NODE.DELETED_AT.isNull)
+          .execute() > 0
+      if (updated) NodeSearch.refreshSearchVector(tx, nodeId)
+      updated
+    }
 
   fun updateEdge(
     edgeId: ResourceId,

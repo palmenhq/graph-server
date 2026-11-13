@@ -133,7 +133,8 @@ jooq {
       database {
         name = "org.jooq.meta.postgres.PostgresDatabase"
         includes = "public\\..*"
-        excludes = "public\\.databasechangelog|public\\.databasechangeloglock"
+        // node.search_vector is maintained by app.graph.NodeSearch and tsvector is not supported by jooq
+        excludes = "public\\.databasechangelog|public\\.databasechangeloglock|public\\.node\\.search_vector"
         inputSchema = "public"
         outputSchema = "public_schema"
       }

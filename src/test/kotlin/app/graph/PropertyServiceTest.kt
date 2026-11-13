@@ -199,6 +199,46 @@ class PropertyServiceTest {
   }
 
   @Test
+  fun `searches nodes by title and property values`() {
+    val workspace = TestHelp.createWorkspace("test")
+    val person = graphService.createNodeType(title = "Person", workspaceId = workspace.id!!)
+    val alice = graphService.createNode(person.id!!, "Alice", workspaceId = workspace.id!!)
+    val bob = graphService.createNode(person.id!!, "Bob", workspaceId = workspace.id!!)
+    val email = propertyService.createProperty(person.id!!, "email", PropertyValueType.email, workspace.id!!)
+    val notes = propertyService.createProperty(person.id!!, "notes", PropertyValueType.textarea, workspace.id!!)
+
+    fun search(query: String) =
+      graphService
+        .getNodes(workspace.id!!, searchQuery = query)
+        .items
+        .map { it.id }
+        .toSet()
+
+    propertyService.setPropertyValue(alice.id!!, email.id!!, "alice@example.com", workspace.id!!)
+    propertyService.setPropertyValue(alice.id!!, notes.id!!, "Met at the Stockholm conference", workspace.id!!)
+    propertyService.setPropertyValue(bob.id!!, notes.id!!, "Works in Stockholm", workspace.id!!)
+
+    assertEquals(setOf(alice.id), search("alice@example.com"))
+    assertEquals(setOf(alice.id), search("example"))
+    assertEquals(setOf(alice.id, bob.id), search("stockh"))
+    assertEquals(setOf(alice.id), search("STOCKHOLM conf"))
+    assertEquals(setOf(bob.id), search("bob stockholm"))
+    assertEquals(emptySet<String>(), search("alice works"))
+    assertEquals(emptySet<String>(), search("it's"))
+
+    // Overwriting and clearing values updates the search
+    propertyService.setPropertyValue(bob.id!!, notes.id!!, "Works in Gothenburg", workspace.id!!)
+    assertEquals(setOf(alice.id), search("stockholm"))
+    propertyService.setPropertyValue(alice.id!!, email.id!!, null, workspace.id!!)
+    assertEquals(emptySet<String>(), search("example"))
+
+    // Renaming the node updates the search and keeps property values searchable
+    graphService.updateNode(bob.id!!, workspace.id!!, "Robert")
+    assertEquals(setOf(bob.id), search("robert gothenburg"))
+    assertEquals(emptySet<String>(), search("bob"))
+  }
+
+  @Test
   fun `rejects setting property values that do not apply to the node`() {
     val workspace = TestHelp.createWorkspace("test")
     val otherWorkspace = TestHelp.createWorkspace("other")
