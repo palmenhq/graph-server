@@ -22,6 +22,30 @@ class UserRepository(
       .where(APP_USER.USERNAME.eq(username))
       .fetchOneInto(AppUser::class.java)
 
+  fun findByUsernameForUpdate(username: String): AppUser? =
+    dsl
+      .selectFrom(APP_USER)
+      .where(APP_USER.USERNAME.eq(username))
+      .forUpdate()
+      .fetchOneInto(AppUser::class.java)
+
+  fun findByIdForUpdate(id: String): AppUser? =
+    dsl
+      .selectFrom(APP_USER)
+      .where(APP_USER.ID.eq(id))
+      .forUpdate()
+      .fetchOneInto(AppUser::class.java)
+
+  fun updatePasswordHash(
+    userId: String,
+    passwordHash: String,
+  ): Boolean =
+    dsl
+      .update(APP_USER)
+      .set(APP_USER.PASSWORD_HASH, passwordHash)
+      .where(APP_USER.ID.eq(userId))
+      .execute() > 0
+
   companion object {
     fun newUserId(): ResourceId =
       UUID

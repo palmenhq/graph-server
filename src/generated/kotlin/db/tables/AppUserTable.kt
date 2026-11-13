@@ -7,7 +7,9 @@ package db.tables
 import db.PublicSchema
 import db.keys.APP_USER_PKEY
 import db.keys.APP_USER_USERNAME_KEY
+import db.keys.PASSWORD_RESET_REQUEST__PASSWORD_RESET_REQUEST_USER_ID_FKEY
 import db.keys.WORKSPACE_MEMBER__WORKSPACE_MEMBER_USER_ID_FKEY
+import db.tables.PasswordResetRequestTable.PasswordResetRequestPath
 import db.tables.WorkspaceMemberTable.WorkspaceMemberPath
 import db.tables.WorkspaceTable.WorkspacePath
 import db.tables.records.AppUserRecord
@@ -131,6 +133,22 @@ open class AppUserTable(
     override fun getSchema(): Schema? = if (aliased()) null else PublicSchema.PUBLIC_SCHEMA
     override fun getPrimaryKey(): UniqueKey<AppUserRecord> = APP_USER_PKEY
     override fun getUniqueKeys(): List<UniqueKey<AppUserRecord>> = listOf(APP_USER_USERNAME_KEY)
+
+    private lateinit var _passwordResetRequest: PasswordResetRequestPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public_schema.password_reset_request</code> table
+     */
+    fun passwordResetRequest(): PasswordResetRequestPath {
+        if (!this::_passwordResetRequest.isInitialized)
+            _passwordResetRequest = PasswordResetRequestPath(this, null, PASSWORD_RESET_REQUEST__PASSWORD_RESET_REQUEST_USER_ID_FKEY.inverseKey)
+
+        return _passwordResetRequest;
+    }
+
+    val passwordResetRequest: PasswordResetRequestPath
+        get(): PasswordResetRequestPath = passwordResetRequest()
 
     private lateinit var _workspaceMember: WorkspaceMemberPath
 

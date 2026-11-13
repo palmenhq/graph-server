@@ -6,6 +6,7 @@
       <env name="DB_URL" value="jdbc:postgresql://127.0.0.1:54321/graph" />
       <env name="DB_USER" value="graph" />
       <env name="SUPERADMIN_TOKEN_SECRET" value="secret" />
+      <env name="WEB_APP_HOST" value="http://localhost:5173" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="app.MainKt" />
     <module name="graph-server.main" />

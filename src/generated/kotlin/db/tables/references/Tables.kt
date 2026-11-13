@@ -15,6 +15,7 @@ import db.tables.NodeTypePreferredEdgeTypeTable
 import db.tables.NodeTypeTable
 import db.tables.NoteMentionTable
 import db.tables.NoteTable
+import db.tables.PasswordResetRequestTable
 import db.tables.SessionTable
 import db.tables.WorkspaceMemberTable
 import db.tables.WorkspaceTable
@@ -70,6 +71,11 @@ val NOTE: NoteTable = NoteTable.NOTE
  * The table <code>public_schema.note_mention</code>.
  */
 val NOTE_MENTION: NoteMentionTable = NoteMentionTable.NOTE_MENTION
+
+/**
+ * The table <code>public_schema.password_reset_request</code>.
+ */
+val PASSWORD_RESET_REQUEST: PasswordResetRequestTable = PasswordResetRequestTable.PASSWORD_RESET_REQUEST
 
 /**
  * The table <code>public_schema.session</code>.

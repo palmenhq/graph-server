@@ -1,6 +1,7 @@
 package app
 
 import app.auth.AuthService
+import app.auth.PasswordResetRepository
 import app.auth.PostgresSessionStorage
 import app.auth.RequireSession
 import app.auth.SESSION_HEADER
@@ -72,7 +73,11 @@ fun Application.main() {
     )
   val dslContext = DSL.using(dataSource, SQLDialect.POSTGRES, Database.jooqSettings)
 
-  module(dslContext, superadminTokenSecret = Environment.superadminTokenSecret)
+  module(
+    dslContext,
+    superadminTokenSecret = Environment.superadminTokenSecret,
+    webAppHost = Environment.webAppHost,
+  )
 }
 
 /**
@@ -81,9 +86,10 @@ fun Application.main() {
 fun Application.module(
   dslContext: DSLContext,
   superadminTokenSecret: String?,
+  webAppHost: String,
 ) {
   val sessionStorage = PostgresSessionStorage(dslContext)
-  val authService = AuthService(UserRepository(dslContext), sessionStorage)
+  val authService = AuthService(UserRepository(dslContext), sessionStorage, PasswordResetRepository(dslContext))
 
   val workspaceService = WorkspaceService(WorkspaceRepository(dslContext))
 
@@ -113,7 +119,7 @@ fun Application.module(
     val superadminRoot =
       route("/api/superadmin") {
         install(RequireSuperadminToken) { secret = superadminTokenSecret }
-        superadminRoutes(authService)
+        superadminRoutes(authService, webAppHost)
       }
 
     authRoutes(authService)

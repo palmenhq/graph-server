@@ -1,4 +1,5 @@
 import app.auth.AuthService
+import app.auth.PasswordResetRepository
 import app.auth.PostgresSessionStorage
 import app.auth.UserRepository
 import app.config.Database
@@ -29,7 +30,7 @@ object TestHelp {
 
   val workspaceService = WorkspaceService(WorkspaceRepository(dslContext))
 
-  val authService = AuthService(UserRepository(dslContext), PostgresSessionStorage(dslContext))
+  val authService = AuthService(UserRepository(dslContext), PostgresSessionStorage(dslContext), PasswordResetRepository(dslContext))
 
   fun createUser(password: String = "secret"): AppUser = authService.createUser("user-${UUID.randomUUID()}", password)
 
@@ -42,15 +43,17 @@ object TestHelp {
   ): Workspace = workspaceService.createWorkspace(name, ownerId = ownerId)
 
   const val SUPERADMIN_SECRET = "test-superadmin-secret"
+  const val WEB_APP_HOST = "https://example.com"
 
   /**
    * Runs the full application
    */
   fun testServer(
     superadminTokenSecret: String? = SUPERADMIN_SECRET,
+    webAppHost: String = WEB_APP_HOST,
     block: suspend ApplicationTestBuilder.() -> Unit,
   ) = testApplication {
-    application { module(dslContext, superadminTokenSecret = superadminTokenSecret) }
+    application { module(dslContext, superadminTokenSecret = superadminTokenSecret, webAppHost = webAppHost) }
     block()
   }
 }

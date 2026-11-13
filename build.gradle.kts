@@ -135,6 +135,7 @@ jooq {
         includes = "public\\..*"
         // node.search_vector is maintained by app.graph.NodeSearch and tsvector is not supported by jooq
         excludes = "public\\.databasechangelog|public\\.databasechangeloglock|public\\.node\\.search_vector"
+        includeExcludeColumns = true
         inputSchema = "public"
         outputSchema = "public_schema"
       }

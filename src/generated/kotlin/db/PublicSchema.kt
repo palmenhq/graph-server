@@ -14,6 +14,7 @@ import db.tables.NodeTypePreferredEdgeTypeTable
 import db.tables.NodeTypeTable
 import db.tables.NoteMentionTable
 import db.tables.NoteTable
+import db.tables.PasswordResetRequestTable
 import db.tables.SessionTable
 import db.tables.WorkspaceMemberTable
 import db.tables.WorkspaceTable
@@ -90,6 +91,11 @@ open class PublicSchema : SchemaImpl(DSL.name("public_schema"), DefaultCatalog.D
     val NOTE_MENTION: NoteMentionTable get() = NoteMentionTable.NOTE_MENTION
 
     /**
+     * The table <code>public_schema.password_reset_request</code>.
+     */
+    val PASSWORD_RESET_REQUEST: PasswordResetRequestTable get() = PasswordResetRequestTable.PASSWORD_RESET_REQUEST
+
+    /**
      * The table <code>public_schema.session</code>.
      */
     val SESSION: SessionTable get() = SessionTable.SESSION
@@ -117,6 +123,7 @@ open class PublicSchema : SchemaImpl(DSL.name("public_schema"), DefaultCatalog.D
         NodeTypePreferredEdgeTypeTable.NODE_TYPE_PREFERRED_EDGE_TYPE,
         NoteTable.NOTE,
         NoteMentionTable.NOTE_MENTION,
+        PasswordResetRequestTable.PASSWORD_RESET_REQUEST,
         SessionTable.SESSION,
         WorkspaceTable.WORKSPACE,
         WorkspaceMemberTable.WORKSPACE_MEMBER

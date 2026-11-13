@@ -25,7 +25,7 @@ import java.util.UUID
 
 class AuthTest {
   private val dsl = TestHelp.dslContext
-  private val authService = AuthService(UserRepository(dsl), PostgresSessionStorage(dsl))
+  private val authService = AuthService(UserRepository(dsl), PostgresSessionStorage(dsl), PasswordResetRepository(dsl))
 
   private fun newUsername() = "user-${UUID.randomUUID()}"
 

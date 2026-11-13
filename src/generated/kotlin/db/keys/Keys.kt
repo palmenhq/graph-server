@@ -15,6 +15,7 @@ import db.tables.NodeTypePreferredEdgeTypeTable
 import db.tables.NodeTypeTable
 import db.tables.NoteMentionTable
 import db.tables.NoteTable
+import db.tables.PasswordResetRequestTable
 import db.tables.SessionTable
 import db.tables.WorkspaceMemberTable
 import db.tables.WorkspaceTable
@@ -28,6 +29,7 @@ import db.tables.records.NodeTypePreferredEdgeTypeRecord
 import db.tables.records.NodeTypeRecord
 import db.tables.records.NoteMentionRecord
 import db.tables.records.NoteRecord
+import db.tables.records.PasswordResetRequestRecord
 import db.tables.records.SessionRecord
 import db.tables.records.WorkspaceMemberRecord
 import db.tables.records.WorkspaceRecord
@@ -55,6 +57,7 @@ val NODE_TYPE_PKEY: UniqueKey<NodeTypeRecord> = Internal.createUniqueKey(NodeTyp
 val NODE_TYPE_PREFERRED_EDGE_TYPE_PKEY: UniqueKey<NodeTypePreferredEdgeTypeRecord> = Internal.createUniqueKey(NodeTypePreferredEdgeTypeTable.NODE_TYPE_PREFERRED_EDGE_TYPE, DSL.name("node_type_preferred_edge_type_pkey"), arrayOf(NodeTypePreferredEdgeTypeTable.NODE_TYPE_PREFERRED_EDGE_TYPE.NODE_TYPE_ID, NodeTypePreferredEdgeTypeTable.NODE_TYPE_PREFERRED_EDGE_TYPE.EDGE_TYPE_ID, NodeTypePreferredEdgeTypeTable.NODE_TYPE_PREFERRED_EDGE_TYPE.REVERSE), true)
 val NOTE_PKEY: UniqueKey<NoteRecord> = Internal.createUniqueKey(NoteTable.NOTE, DSL.name("note_pkey"), arrayOf(NoteTable.NOTE.ID), true)
 val NOTE_MENTION_PKEY: UniqueKey<NoteMentionRecord> = Internal.createUniqueKey(NoteMentionTable.NOTE_MENTION, DSL.name("note_mention_pkey"), arrayOf(NoteMentionTable.NOTE_MENTION.ID), true)
+val PASSWORD_RESET_REQUEST_PKEY: UniqueKey<PasswordResetRequestRecord> = Internal.createUniqueKey(PasswordResetRequestTable.PASSWORD_RESET_REQUEST, DSL.name("password_reset_request_pkey"), arrayOf(PasswordResetRequestTable.PASSWORD_RESET_REQUEST.ID), true)
 val SESSION_PKEY: UniqueKey<SessionRecord> = Internal.createUniqueKey(SessionTable.SESSION, DSL.name("session_pkey"), arrayOf(SessionTable.SESSION.ID), true)
 val WORKSPACE_PKEY: UniqueKey<WorkspaceRecord> = Internal.createUniqueKey(WorkspaceTable.WORKSPACE, DSL.name("workspace_pkey"), arrayOf(WorkspaceTable.WORKSPACE.ID), true)
 val WORKSPACE_MEMBER_PKEY: UniqueKey<WorkspaceMemberRecord> = Internal.createUniqueKey(WorkspaceMemberTable.WORKSPACE_MEMBER, DSL.name("workspace_member_pkey"), arrayOf(WorkspaceMemberTable.WORKSPACE_MEMBER.WORKSPACE_ID, WorkspaceMemberTable.WORKSPACE_MEMBER.USER_ID), true)
@@ -82,5 +85,6 @@ val NOTE__NOTE_NODE_ID_FKEY: ForeignKey<NoteRecord, NodeRecord> = Internal.creat
 val NOTE__NOTE_WORKSPACE_ID_FKEY: ForeignKey<NoteRecord, WorkspaceRecord> = Internal.createForeignKey(NoteTable.NOTE, DSL.name("note_workspace_id_fkey"), arrayOf(NoteTable.NOTE.WORKSPACE_ID), db.keys.WORKSPACE_PKEY, arrayOf(WorkspaceTable.WORKSPACE.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val NOTE_MENTION__NOTE_MENTION_NODE_FKEY: ForeignKey<NoteMentionRecord, NodeRecord> = Internal.createForeignKey(NoteMentionTable.NOTE_MENTION, DSL.name("note_mention_node_fkey"), arrayOf(NoteMentionTable.NOTE_MENTION.NODE), db.keys.NODE_PKEY, arrayOf(NodeTable.NODE.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
 val NOTE_MENTION__NOTE_MENTION_NOTE_FKEY: ForeignKey<NoteMentionRecord, NoteRecord> = Internal.createForeignKey(NoteMentionTable.NOTE_MENTION, DSL.name("note_mention_note_fkey"), arrayOf(NoteMentionTable.NOTE_MENTION.NOTE), db.keys.NOTE_PKEY, arrayOf(NoteTable.NOTE.ID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val PASSWORD_RESET_REQUEST__PASSWORD_RESET_REQUEST_USER_ID_FKEY: ForeignKey<PasswordResetRequestRecord, AppUserRecord> = Internal.createForeignKey(PasswordResetRequestTable.PASSWORD_RESET_REQUEST, DSL.name("password_reset_request_user_id_fkey"), arrayOf(PasswordResetRequestTable.PASSWORD_RESET_REQUEST.USER_ID), db.keys.APP_USER_PKEY, arrayOf(AppUserTable.APP_USER.ID), true, ForeignKeyRule.CASCADE, ForeignKeyRule.NO_ACTION)
 val WORKSPACE_MEMBER__WORKSPACE_MEMBER_USER_ID_FKEY: ForeignKey<WorkspaceMemberRecord, AppUserRecord> = Internal.createForeignKey(WorkspaceMemberTable.WORKSPACE_MEMBER, DSL.name("workspace_member_user_id_fkey"), arrayOf(WorkspaceMemberTable.WORKSPACE_MEMBER.USER_ID), db.keys.APP_USER_PKEY, arrayOf(AppUserTable.APP_USER.ID), true, ForeignKeyRule.CASCADE, ForeignKeyRule.NO_ACTION)
 val WORKSPACE_MEMBER__WORKSPACE_MEMBER_WORKSPACE_ID_FKEY: ForeignKey<WorkspaceMemberRecord, WorkspaceRecord> = Internal.createForeignKey(WorkspaceMemberTable.WORKSPACE_MEMBER, DSL.name("workspace_member_workspace_id_fkey"), arrayOf(WorkspaceMemberTable.WORKSPACE_MEMBER.WORKSPACE_ID), db.keys.WORKSPACE_PKEY, arrayOf(WorkspaceTable.WORKSPACE.ID), true, ForeignKeyRule.CASCADE, ForeignKeyRule.NO_ACTION)

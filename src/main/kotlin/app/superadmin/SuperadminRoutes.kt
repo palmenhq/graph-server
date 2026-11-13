@@ -1,6 +1,8 @@
 package app.superadmin
 
 import app.auth.AuthService
+import app.superadmin.dtos.CreatePasswordResetRequest
+import app.superadmin.dtos.CreatePasswordResetResponse
 import app.superadmin.dtos.CreateUserRequest
 import app.superadmin.dtos.UserDto
 import app.utils.http.ClientError
@@ -52,7 +54,10 @@ val RequireSuperadminToken =
 
 private fun sha256(value: String): ByteArray = MessageDigest.getInstance("SHA-256").digest(value.toByteArray())
 
-fun Route.superadminRoutes(authService: AuthService) {
+fun Route.superadminRoutes(
+  authService: AuthService,
+  webAppHost: String,
+) {
   route("users") {
     post("createUser") {
       val req = call.receive<CreateUserRequest>()
@@ -74,6 +79,28 @@ fun Route.superadminRoutes(authService: AuthService) {
         }
 
       call.respond(HttpStatusCode.Created, UserDto(id = user.id!!, username = user.username!!))
+    }
+
+    post("createPasswordReset") {
+      val req = call.receive<CreatePasswordResetRequest>()
+      if (req.username.isBlank()) {
+        return@post call.respond(
+          HttpStatusCode.UnprocessableEntity,
+          ClientError(description = "username must not be blank", code = "invalid_request"),
+        )
+      }
+
+      val reset =
+        authService.createPasswordReset(username = req.username, webAppHost = webAppHost)
+          ?: return@post call.respond(
+            HttpStatusCode.NotFound,
+            ClientError(description = "User not found", code = "user_not_found"),
+          )
+
+      call.respond(
+        HttpStatusCode.Created,
+        CreatePasswordResetResponse(requestId = reset.requestId, link = reset.link, expiresAt = reset.expiresAt.toString()),
+      )
     }
   }
 }

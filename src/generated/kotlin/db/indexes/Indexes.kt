@@ -14,6 +14,7 @@ import db.tables.NodeTypePreferredEdgeTypeTable
 import db.tables.NodeTypeTable
 import db.tables.NoteMentionTable
 import db.tables.NoteTable
+import db.tables.PasswordResetRequestTable
 import db.tables.SessionTable
 import db.tables.WorkspaceMemberTable
 
@@ -47,5 +48,6 @@ val NOTE_MENTION_NODE_IDX: Index = Internal.createIndex(DSL.name("note_mention_n
 val NOTE_MENTION_NOTE_IDX: Index = Internal.createIndex(DSL.name("note_mention_note_idx"), NoteMentionTable.NOTE_MENTION, arrayOf(NoteMentionTable.NOTE_MENTION.NOTE), false)
 val NOTE_NODE_ID_IDX: Index = Internal.createIndex(DSL.name("note_node_id_idx"), NoteTable.NOTE, arrayOf(NoteTable.NOTE.NODE_ID), false)
 val NOTE_WORKSPACE_ID_CREATED_AT_IDX: Index = Internal.createIndex(DSL.name("note_workspace_id_created_at_idx"), NoteTable.NOTE, arrayOf(NoteTable.NOTE.WORKSPACE_ID, NoteTable.NOTE.CREATED_AT), false)
+val PASSWORD_RESET_REQUEST_USER_ID_IDX: Index = Internal.createIndex(DSL.name("password_reset_request_user_id_idx"), PasswordResetRequestTable.PASSWORD_RESET_REQUEST, arrayOf(PasswordResetRequestTable.PASSWORD_RESET_REQUEST.USER_ID), false)
 val SESSION_EXPIRES_AT_IDX: Index = Internal.createIndex(DSL.name("session_expires_at_idx"), SessionTable.SESSION, arrayOf(SessionTable.SESSION.EXPIRES_AT), false)
 val WORKSPACE_MEMBER_USER_ID_IDX: Index = Internal.createIndex(DSL.name("workspace_member_user_id_idx"), WorkspaceMemberTable.WORKSPACE_MEMBER, arrayOf(WorkspaceMemberTable.WORKSPACE_MEMBER.USER_ID), false)
