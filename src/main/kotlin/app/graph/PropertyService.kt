@@ -7,13 +7,13 @@ import app.graph.validation.NoSuchNodeTypeException
 import app.graph.validation.NoSuchPropertyException
 import app.graph.validation.PropertyNotOnNodeTypeException
 import app.graph.validation.PropertyValueValidator
+import app.utils.AppClock
 import app.utils.ResourceId
 import app.utils.toResourceId
 import db.enums.PropertyValueType
 import db.tables.pojos.Node
 import db.tables.pojos.NodeProperty
 import db.tables.pojos.NodePropertyValue
-import java.time.OffsetDateTime
 import java.util.UUID
 
 class PropertyService(
@@ -42,7 +42,7 @@ class PropertyService(
         nodeTypeId = nodeTypeId,
         name = trimmedName,
         valueType = valueType,
-        createdAt = OffsetDateTime.now(),
+        createdAt = AppClock.now(),
         workspaceId = workspaceId,
       )
     propertyRepository.createProperty(property)
@@ -98,7 +98,7 @@ class PropertyService(
         ?: throw NoSuchPropertyException(propertyId)
     if (property.nodeTypeId != nodeTypeId) throw PropertyNotOnNodeTypeException(propertyId, nodeTypeId)
 
-    val deletedAt = OffsetDateTime.now()
+    val deletedAt = AppClock.now()
     if (!propertyRepository.softDeleteProperty(propertyId, workspaceId, deletedAt)) {
       throw NoSuchPropertyException(propertyId)
     }
@@ -130,7 +130,7 @@ class PropertyService(
         propertyId = propertyId,
         valueType = property.valueType,
         value = value,
-        updatedAt = OffsetDateTime.now(),
+        updatedAt = AppClock.now(),
         workspaceId = workspaceId,
       )
     propertyRepository.upsertPropertyValue(propertyValue)

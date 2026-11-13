@@ -7,6 +7,7 @@ import app.graph.validation.NoSuchEdgeException
 import app.graph.validation.NoSuchEdgeTypeException
 import app.graph.validation.NoSuchNodeException
 import app.graph.validation.NoSuchNodeTypeException
+import app.utils.AppClock
 import app.utils.ResourceId
 import app.utils.http.Cursor
 import app.utils.http.DEFAULT_PAGE_SIZE
@@ -19,7 +20,6 @@ import db.tables.pojos.Edge
 import db.tables.pojos.EdgeType
 import db.tables.pojos.Node
 import db.tables.pojos.NodeType
-import java.time.OffsetDateTime
 import java.util.UUID
 
 class GraphService(
@@ -35,7 +35,7 @@ class GraphService(
       NodeType(
         id = newNodeTypeId(),
         title = title,
-        createdAt = OffsetDateTime.now(),
+        createdAt = AppClock.now(),
         workspaceId = workspace.id!!,
       )
     graphRepository.createNodeType(nodeType)
@@ -54,7 +54,7 @@ class GraphService(
         relationshipTitle = relationshipTitle,
         reverseRelationshipTitle = reverseRelationshipTitle,
         workspaceId = workspace.id!!,
-        createdAt = OffsetDateTime.now(),
+        createdAt = AppClock.now(),
       )
     graphRepository.createEdgeType(edgeType)
     return edgeType
@@ -68,7 +68,7 @@ class GraphService(
     val workspace = workspaceService.getById(workspaceId) ?: throw NoSuchWorkspaceException()
     graphRepository.findNodeTypeById(nodeTypeId = nodeTypeId, workspaceId = workspace.id!!)
       ?: throw NoSuchNodeTypeException(nodeTypeId)
-    val now = OffsetDateTime.now()
+    val now = AppClock.now()
     val node =
       Node(
         id = newNodeId(),
@@ -101,7 +101,7 @@ class GraphService(
         toNode = toNode,
         title = title,
         workspaceId = workspace.id!!,
-        createdAt = OffsetDateTime.now(),
+        createdAt = AppClock.now(),
       )
     graphRepository.createEdge(edge)
     return edge
@@ -263,7 +263,7 @@ class GraphService(
     nodeTypeId: ResourceId,
     workspaceId: ResourceId,
   ) {
-    if (!graphRepository.softDeleteNodeType(nodeTypeId, workspaceId, OffsetDateTime.now())) {
+    if (!graphRepository.softDeleteNodeType(nodeTypeId, workspaceId, AppClock.now())) {
       throw NoSuchNodeTypeException(nodeTypeId)
     }
   }
@@ -275,7 +275,7 @@ class GraphService(
     edgeTypeId: ResourceId,
     workspaceId: ResourceId,
   ) {
-    if (!graphRepository.softDeleteEdgeType(edgeTypeId, workspaceId, OffsetDateTime.now())) {
+    if (!graphRepository.softDeleteEdgeType(edgeTypeId, workspaceId, AppClock.now())) {
       throw NoSuchEdgeTypeException(edgeTypeId)
     }
   }
@@ -287,7 +287,7 @@ class GraphService(
     nodeId: ResourceId,
     workspaceId: ResourceId,
   ) {
-    if (!graphRepository.softDeleteNode(nodeId, workspaceId, OffsetDateTime.now())) {
+    if (!graphRepository.softDeleteNode(nodeId, workspaceId, AppClock.now())) {
       throw NoSuchNodeException(nodeId)
     }
   }
@@ -296,7 +296,7 @@ class GraphService(
     nodeId: ResourceId,
     workspaceId: ResourceId,
   ): Node {
-    if (!graphRepository.updateNodeLastViewedAt(nodeId, workspaceId, OffsetDateTime.now())) {
+    if (!graphRepository.updateNodeLastViewedAt(nodeId, workspaceId, AppClock.now())) {
       throw NoSuchNodeException(nodeId)
     }
     return graphRepository.findNodeById(nodeId, workspaceId) ?: throw NoSuchNodeException(nodeId)
@@ -316,7 +316,7 @@ class GraphService(
     edgeId: ResourceId,
     workspaceId: ResourceId,
   ) {
-    if (!graphRepository.softDeleteEdge(edgeId, workspaceId, OffsetDateTime.now())) {
+    if (!graphRepository.softDeleteEdge(edgeId, workspaceId, AppClock.now())) {
       throw NoSuchEdgeException(edgeId)
     }
   }

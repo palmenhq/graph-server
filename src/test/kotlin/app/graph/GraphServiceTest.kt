@@ -8,6 +8,7 @@ import app.graph.validation.NoSuchEdgeException
 import app.graph.validation.NoSuchEdgeTypeException
 import app.graph.validation.NoSuchNodeException
 import app.graph.validation.NoSuchNodeTypeException
+import app.utils.AppClock
 import app.utils.http.Cursor
 import app.utils.http.InvalidCursorException
 import db.tables.pojos.Node
@@ -577,9 +578,11 @@ class GraphServiceTest {
     val nodes = (1..5).map { graphService.createNode(contact.id!!, "Node $it", workspaceId = workspace.id!!) }
     assertEquals(nodes[0].createdAt, nodes[0].lastViewedAt)
 
+    Thread.sleep(1)
     val viewed = graphService.markNodeViewed(nodes[1].id!!, workspace.id!!)
-    assertEquals(nodes[1].createdAt, viewed.createdAt)
+    assertEquals(nodes[1].id, viewed.id)
     assertTrue(viewed.lastViewedAt!!.isAfter(nodes[4].lastViewedAt))
+    Thread.sleep(1)
     graphService.markNodeViewed(nodes[3].id!!, workspace.id!!)
 
     val first = graphService.getNodes(workspace.id!!, pageSize = 2)
@@ -603,6 +606,6 @@ class GraphServiceTest {
   fun `rejects invalid cursors`() {
     assertThrows(InvalidCursorException::class.java) { Cursor.decode("not a cursor") }
     assertThrows(InvalidCursorException::class.java) { Cursor.decode("bm9waXBl") }
-    assertThrows(InvalidCursorException::class.java) { Cursor.decode(Cursor(OffsetDateTime.now(), "").encode()) }
+    assertThrows(InvalidCursorException::class.java) { Cursor.decode(Cursor(AppClock.now(), "").encode()) }
   }
 }

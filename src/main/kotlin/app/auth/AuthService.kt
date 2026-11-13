@@ -1,5 +1,6 @@
 package app.auth
 
+import app.utils.AppClock
 import app.utils.toResourceId
 import db.tables.pojos.AppUser
 import db.tables.pojos.PasswordResetRequest
@@ -32,7 +33,7 @@ class AuthService(
         this.id = UserRepository.newUserId()
         this.username = username
         this.passwordHash = PasswordHasher.hash(password)
-        this.createdAt = OffsetDateTime.now()
+        this.createdAt = AppClock.now()
       }
     userRepository.insert(user)
 
@@ -63,7 +64,7 @@ class AuthService(
     val expiresAt =
       passwordResetRepository.transaction { tx ->
         val user = UserRepository(tx).findByUsernameForUpdate(username) ?: return@transaction null
-        val now = OffsetDateTime.now()
+        val now = AppClock.now()
         val expiresAt = now.plus(PASSWORD_RESET_TTL)
         val repository = PasswordResetRepository(tx)
         repository.invalidateOpenForUser(user.id!!, now)
@@ -88,7 +89,7 @@ class AuthService(
     token: String,
     newPassword: String,
   ): Boolean {
-    val now = OffsetDateTime.now()
+    val now = AppClock.now()
     return passwordResetRepository.transaction { tx ->
       val resetRepository = PasswordResetRepository(tx)
       val request = findValidPasswordReset(resetRepository, requestId, token, now) ?: return@transaction false
@@ -97,7 +98,7 @@ class AuthService(
 
       val txUserRepository = UserRepository(tx)
       if (txUserRepository.findByIdForUpdate(userId) == null) return@transaction false
-      val usedAt = OffsetDateTime.now()
+      val usedAt = AppClock.now()
       if (!expiresAt.isAfter(usedAt)) return@transaction false
       if (resetRepository.markUsed(requestId, usedAt) != 1) return@transaction false
 
@@ -108,7 +109,7 @@ class AuthService(
   fun validatePasswordReset(
     requestId: String,
     token: String,
-  ): Boolean = findValidPasswordReset(passwordResetRepository, requestId, token, OffsetDateTime.now()) != null
+  ): Boolean = findValidPasswordReset(passwordResetRepository, requestId, token, AppClock.now()) != null
 
   private fun findValidPasswordReset(
     resetRepository: PasswordResetRepository,

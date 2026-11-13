@@ -1,5 +1,6 @@
 package app.workspaces
 
+import app.utils.AppClock
 import app.utils.ResourceId
 import app.utils.toResourceId
 import db.tables.daos.WorkspaceDao
@@ -29,7 +30,7 @@ class WorkspaceRepository(
         .insertInto(WORKSPACE_MEMBER)
         .set(WORKSPACE_MEMBER.WORKSPACE_ID, workspace.id)
         .set(WORKSPACE_MEMBER.USER_ID, memberId)
-        .set(WORKSPACE_MEMBER.CREATED_AT, OffsetDateTime.now())
+        .set(WORKSPACE_MEMBER.CREATED_AT, AppClock.now())
         .execute()
     }
   }

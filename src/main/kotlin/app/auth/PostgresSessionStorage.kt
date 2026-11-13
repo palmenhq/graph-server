@@ -1,5 +1,6 @@
 package app.auth
 
+import app.utils.AppClock
 import db.tables.references.SESSION
 import io.ktor.server.sessions.SessionStorage
 import kotlinx.coroutines.Dispatchers
@@ -7,7 +8,6 @@ import kotlinx.coroutines.withContext
 import org.jooq.DSLContext
 import java.security.MessageDigest
 import java.time.Duration
-import java.time.OffsetDateTime
 import java.util.HexFormat
 
 /**
@@ -22,7 +22,7 @@ class PostgresSessionStorage(
     id: String,
     value: String,
   ) {
-    val now = OffsetDateTime.now()
+    val now = AppClock.now()
     withContext(Dispatchers.IO) {
       dsl
         .insertInto(SESSION)
@@ -49,14 +49,14 @@ class PostgresSessionStorage(
         .select(SESSION.DATA)
         .from(SESSION)
         .where(SESSION.ID.eq(hash(id)))
-        .and(SESSION.EXPIRES_AT.gt(OffsetDateTime.now()))
+        .and(SESSION.EXPIRES_AT.gt(AppClock.now()))
         .fetchOne(SESSION.DATA)
     } ?: throw NoSuchElementException("Session not found or expired")
 
   fun deleteExpired(): Int =
     dsl
       .deleteFrom(SESSION)
-      .where(SESSION.EXPIRES_AT.le(OffsetDateTime.now()))
+      .where(SESSION.EXPIRES_AT.le(AppClock.now()))
       .execute()
 
   private fun hash(id: String): String = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(id.toByteArray()))

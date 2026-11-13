@@ -7,6 +7,7 @@ import app.notes.db.NoteMentionDbo
 import app.notes.dtos.MentionRequest
 import app.notes.validation.NoSuchMentionedNodeException
 import app.notes.validation.NoSuchNoteException
+import app.utils.AppClock
 import app.utils.ResourceId
 import app.utils.toResourceId
 import app.workspaces.WorkspaceService
@@ -15,7 +16,6 @@ import db.tables.pojos.Note
 import db.tables.pojos.NoteMention
 import kotlinx.serialization.json.JsonElement
 import org.jooq.JSONB
-import java.time.OffsetDateTime
 import java.util.UUID
 
 class NotesService(
@@ -39,7 +39,7 @@ class NotesService(
         id = noteId,
         nodeId = nodeId,
         body = JSONB.valueOf(body.toString()),
-        createdAt = OffsetDateTime.now(),
+        createdAt = AppClock.now(),
         workspaceId = workspace.id!!,
       )
 
@@ -62,7 +62,7 @@ class NotesService(
         noteId = noteId,
         workspaceId = workspaceId,
         body = JSONB.valueOf(body.toString()),
-        updatedAt = OffsetDateTime.now(),
+        updatedAt = AppClock.now(),
         mentions = noteMentions.map { it.mention },
       )
     ) {

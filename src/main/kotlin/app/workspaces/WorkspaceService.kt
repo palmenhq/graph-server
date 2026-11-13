@@ -1,9 +1,9 @@
 package app.workspaces
 
+import app.utils.AppClock
 import app.utils.ResourceId
 import app.workspaces.validation.NoSuchWorkspaceException
 import db.tables.pojos.Workspace
-import java.time.OffsetDateTime
 
 class WorkspaceService(
   private val workspaceRepository: WorkspaceRepository,
@@ -16,7 +16,7 @@ class WorkspaceService(
       Workspace().apply {
         this.id = WorkspaceRepository.newResourceId()
         this.name = name
-        this.createdAt = OffsetDateTime.now()
+        this.createdAt = AppClock.now()
       }
     workspaceRepository.insert(workspace, memberId = ownerId)
 
@@ -62,7 +62,7 @@ class WorkspaceService(
     if (!hasAccess(workspaceId = id, userId = userId)) {
       throw NoSuchWorkspaceException()
     }
-    if (workspaceRepository.softDelete(id = id, deletedAt = OffsetDateTime.now()) == 0) {
+    if (workspaceRepository.softDelete(id = id, deletedAt = AppClock.now()) == 0) {
       throw NoSuchWorkspaceException()
     }
   }

@@ -1,5 +1,6 @@
 package app.auth
 
+import app.utils.AppClock
 import db.tables.references.PASSWORD_RESET_REQUEST
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -20,7 +21,6 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.net.URI
-import java.time.OffsetDateTime
 import java.util.UUID
 
 class PasswordResetTest {
@@ -140,7 +140,7 @@ class PasswordResetTest {
 
       dsl
         .update(PASSWORD_RESET_REQUEST)
-        .set(PASSWORD_RESET_REQUEST.EXPIRES_AT, OffsetDateTime.now().minusMinutes(1))
+        .set(PASSWORD_RESET_REQUEST.EXPIRES_AT, AppClock.now().minusMinutes(1))
         .where(PASSWORD_RESET_REQUEST.ID.eq(reset.requestId))
         .execute()
 
@@ -180,7 +180,7 @@ class PasswordResetTest {
       val expiredToken = tokenFromLink(expiredReset.link)
       dsl
         .update(PASSWORD_RESET_REQUEST)
-        .set(PASSWORD_RESET_REQUEST.EXPIRES_AT, OffsetDateTime.now().minusMinutes(1))
+        .set(PASSWORD_RESET_REQUEST.EXPIRES_AT, AppClock.now().minusMinutes(1))
         .where(PASSWORD_RESET_REQUEST.ID.eq(expiredReset.requestId))
         .execute()
 
